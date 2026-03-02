@@ -88,6 +88,22 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import {
+  DataBoard,
+  User,
+  Notebook,
+  Medicine,
+  Calendar,
+  Warning,
+  Wallet,
+  Download,
+  Avatar,
+  House,
+  Setting,
+  UserFilled,
+  Key,
+  Menu as MenuIcon
+} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()

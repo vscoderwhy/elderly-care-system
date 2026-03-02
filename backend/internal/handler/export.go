@@ -42,20 +42,35 @@ func (h *ExportHandler) ExportElderlyList(c *gin.Context) {
 		bed := ""
 		if e.Bed != nil {
 			bed = e.Bed.Name
-			// 需要通过RoomID获取房间名称，这里简化处理
+			// 简化处理，显示楼层ID作为房间号
+			room = fmt.Sprintf("%d室", e.Bed.RoomID)
+		}
+
+		// 处理性别显示
+		genderText := e.Gender
+		if genderText == "male" {
+			genderText = "男"
+		} else if genderText == "female" {
+			genderText = "女"
+		}
+
+		// 处理健康状态
+		healthStatus := "良好"
+		if e.HealthStatus != "" && e.HealthStatus != "{}" {
+			healthStatus = e.HealthStatus
 		}
 
 		report = append(report, export.ElderlyReport{
 			Name:             e.Name,
-			Gender:           e.Gender,
+			Gender:           genderText,
 			Age:              calculateAge(e.BirthDate),
-			Room:            room,
-			Bed:             bed,
-			CareLevel:       fmt.Sprintf("%d级护理", e.CareLevel),
-			HealthStatus:    e.HealthStatus,
-			AdmissionDate:   formatDate(e.AdmissionDate),
+			Room:             room,
+			Bed:              bed,
+			CareLevel:        fmt.Sprintf("%d级护理", e.CareLevel),
+			HealthStatus:     healthStatus,
+			AdmissionDate:    formatDate(e.AdmissionDate),
 			EmergencyContact: e.EmergencyContact,
-			EmergencyPhone:  e.EmergencyPhone,
+			EmergencyPhone:   e.EmergencyPhone,
 		})
 	}
 

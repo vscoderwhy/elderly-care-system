@@ -51,6 +51,10 @@ func Connect(cfg config.DatabaseConfig) (*gorm.DB, error) {
 		&model.VisitAppointment{},
 		&model.Alert{},
 		&model.AlertRule{},
+		&model.Permission{},
+		&model.Menu{},
+		&model.RolePermission{},
+		&model.RoleMenu{},
 	); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
