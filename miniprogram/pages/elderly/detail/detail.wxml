@@ -1,0 +1,123 @@
+<!--pages/elderly/detail/detail.wxml-->
+<view class="container">
+  <!-- 快速呼叫按钮 -->
+  <view class="quick-call-bar">
+    <view class="call-btn emergency" bindtap="quickCall" data-type="紧急">
+      <image class="call-icon" src="/images/service-urgent.png" />
+      <text>紧急呼叫</text>
+    </view>
+    <view class="call-btn care" bindtap="quickCall" data-type="护理">
+      <image class="call-icon" src="/images/service-care.png" />
+      <text>护理帮助</text>
+    </view>
+    <view class="call-btn other" bindtap="goToServiceCall">
+      <image class="call-icon" src="/images/service-other.png" />
+      <text>更多服务</text>
+    </view>
+  </view>
+
+  <!-- 老人基本信息 -->
+  <view class="card">
+    <view class="card-title">基本信息</view>
+    <view class="info-list">
+      <view class="info-item">
+        <text class="label">姓名</text>
+        <text class="value">{{elderly.name}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">性别</text>
+        <text class="value">{{elderly.gender}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">年龄</text>
+        <text class="value">{{elderly.age}}岁</text>
+      </view>
+      <view class="info-item">
+        <text class="label">床位</text>
+        <text class="value">{{elderly.bed?.name || '未分配'}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">护理等级</text>
+        <text class="value">{{elderly.care_level}}级护理</text>
+      </view>
+      <view class="info-item">
+        <text class="label">联系电话</text>
+        <text class="value">{{elderly.phone}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最新护理记录 -->
+  <view class="card">
+    <view class="card-title">
+      <text>护理记录</text>
+      <text class="more" bindtap="viewAllRecords">查看全部</text>
+    </view>
+    <view class="care-list">
+      <view class="care-item" wx:for="{{careRecords}}" wx:key="id">
+        <view class="care-header">
+          <text class="care-name">{{item.care_item?.name}}</text>
+          <text class="care-time">{{item.recorded_at}}</text>
+        </view>
+        <view class="care-content">
+          <text class="care-staff">护理员: {{item.staff?.nickname}}</text>
+          <text class="care-notes" wx:if="{{item.notes}}">备注: {{item.notes}}</text>
+        </view>
+        <view class="care-images" wx:if="{{item.images && item.images.length > 0}}">
+          <image class="care-image" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" mode="aspectFill" bindtap="previewImage" data-url="{{img}}" data-urls="{{item.images}}" />
+        </view>
+      </view>
+      <view class="empty-state" wx:if="{{careRecords.length === 0}}">
+        <text class="empty-state-text">暂无护理记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 健康数据 -->
+  <view class="card">
+    <view class="card-title">健康数据</view>
+    <view class="health-grid">
+      <view
+        class="health-card"
+        wx:for="{{healthRecords}}"
+        wx:key="record_type"
+        bindtap="showHealthHistory"
+        data-type="{{item.record_type}}"
+      >
+        <view class="health-icon {{item.record_type}}">
+          <text>{{item.record_type === 'blood_pressure' ? '血' : item.record_type === 'blood_sugar' ? '糖' : item.record_type === 'temperature' ? '温' : item.record_type === 'weight' ? '重' : '心'}}</text>
+        </view>
+        <view class="health-info">
+          <view class="health-value">{{item.value}}{{item.value2 ? '/' + item.value2 : ''}}</view>
+          <view class="health-unit">{{item.unit}}</view>
+        </view>
+        <view class="health-label">{{item.record_type === 'blood_pressure' ? '血压' : item.record_type === 'blood_sugar' ? '血糖' : item.record_type === 'temperature' ? '体温' : item.record_type === 'weight' ? '体重' : '心率'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 健康历史弹窗 -->
+  <van-popup show="{{showHealthDialog}}" position="bottom" custom-style="height: 60%;" bind:close="closeHealthDialog">
+    <view class="health-history">
+      <view class="history-header">
+        <text class="history-title">{{selectedHealthType === 'blood_pressure' ? '血压' : selectedHealthType === 'blood_sugar' ? '血糖' : selectedHealthType === 'temperature' ? '体温' : selectedHealthType === 'weight' ? '体重' : '心率'}}历史记录</text>
+        <text class="history-close" bindtap="closeHealthDialog">关闭</text>
+      </view>
+      <!-- 简单图表 -->
+      <view class="chart-container">
+        <view class="chart-bar" wx:for="{{healthHistory}}" wx:key="id">
+          <view class="bar-value">{{item.value}}</view>
+          <view class="bar" style="height: {{item.value / 2}}rpx;"></view>
+          <view class="bar-date">{{item.recorded_at}}</view>
+        </view>
+      </view>
+      <!-- 历史列表 -->
+      <view class="history-list">
+        <view class="history-item" wx:for="{{healthHistory}}" wx:key="id">
+          <view class="history-value">{{item.value}}{{item.value2 ? '/' + item.value2 : ''}} {{item.unit}}</view>
+          <view class="history-time">{{item.recorded_at}}</view>
+        </view>
+      </view>
+    </view>
+  </van-popup>
+</view>

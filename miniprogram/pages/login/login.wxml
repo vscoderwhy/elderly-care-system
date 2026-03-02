@@ -1,0 +1,37 @@
+<!--pages/login/login.wxml-->
+<view class="container">
+  <view class="login-box">
+    <image class="logo" src="/images/logo.png" mode="aspectFit" />
+    <text class="title">养老院管理系统</text>
+
+    <view class="form">
+      <view class="form-item">
+        <image class="icon" src="/images/phone.png" />
+        <input class="input" type="number" placeholder="请输入手机号" value="{{phone}}" bindinput="onPhoneInput" maxlength="11" />
+      </view>
+
+      <view class="form-item">
+        <image class="icon" src="/images/lock.png" />
+        <input class="input" type="{{showPassword ? 'text' : 'password'}}" placeholder="请输入密码" value="{{password}}" bindinput="onPasswordInput" />
+        <image class="eye-icon" src="/images/eye{{showPassword ? '-open' : ''}}.png" bindtap="togglePassword" />
+      </view>
+
+      <button class="login-btn" bindtap="handleLogin" loading="{{loading}}" disabled="{{loading}}">
+        登录
+      </button>
+
+      <view class="wechat-login">
+        <text class="divider">或</text>
+        <button class="wechat-btn" open-type="getUserInfo" bindgetuserinfo="handleWeChatLogin">
+          <image class="wechat-icon" src="/images/wechat.png" />
+          微信一键登录
+        </button>
+      </view>
+    </view>
+
+    <view class="tips">
+      <text>默认账号: 13800138000</text>
+      <text>默认密码: 123456</text>
+    </view>
+  </view>
+</view>

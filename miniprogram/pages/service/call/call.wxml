@@ -1,0 +1,76 @@
+<!--pages/service/call/call.wxml-->
+<view class="container">
+  <!-- 老人选择 -->
+  <view class="section">
+    <view class="section-title">选择老人</view>
+    <picker mode="selector" range="{{elderlyList}}" range-key="name" bindchange="onElderlyChange">
+      <view class="picker">
+        <text class="picker-value">{{selectedElderly ? selectedElderly.name : '请选择老人'}}</text>
+        <text class="picker-arrow">></text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 服务类型 -->
+  <view class="section">
+    <view class="section-title">服务类型</view>
+    <view class="service-types">
+      <view class="type-item {{selectedType === item.value ? 'active' : ''}}"
+            wx:for="{{serviceTypes}}" wx:key="value"
+            bindtap="selectType" data-value="{{item.value}}">
+        <image class="type-icon" src="{{item.icon}}" />
+        <text class="type-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="section">
+    <view class="section-title">备注信息</view>
+    <textarea class="notes-input"
+              placeholder="请输入需要说明的情况..."
+              bindinput="onNotesInput"
+              value="{{notes}}"
+              maxlength="200" />
+  </view>
+
+  <!-- 快捷备注 -->
+  <view class="section" wx:if="{{selectedType}}">
+    <view class="section-title">快捷备注</view>
+    <view class="quick-notes">
+      <view class="quick-note-item"
+            wx:for="{{quickNotes[selectedType]}}" wx:key="*this"
+            bindtap="appendNote" data-note="{{item}}">
+        {{item}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="submit-btn" bindtap="submitCall" loading="{{submitting}}" disabled="{{!canSubmit}}">
+      发起呼叫
+    </button>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="history-section">
+    <view class="section-title">最近呼叫</view>
+    <view class="history-list">
+      <view class="history-item" wx:for="{{historyList}}" wx:key="id">
+        <view class="history-header">
+          <text class="history-type">{{item.type}}</text>
+          <text class="history-status status-{{item.status}}">{{getStatusText(item.status)}}</text>
+        </view>
+        <view class="history-content">
+          <text class="history-elderly">{{item.elderly?.name}}</text>
+          <text class="history-notes" wx:if="{{item.notes}}">{{item.notes}}</text>
+        </view>
+        <view class="history-time">{{formatTime(item.requested_at)}}</view>
+      </view>
+      <view class="empty-state" wx:if="{{historyList.length === 0}}">
+        <text class="empty-state-text">暂无呼叫记录</text>
+      </view>
+    </view>
+  </view>
+</view>

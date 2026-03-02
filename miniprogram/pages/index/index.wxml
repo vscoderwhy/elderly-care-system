@@ -1,0 +1,72 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 头部用户信息 -->
+  <view class="header" wx:if="{{userInfo}}">
+    <view class="user-info">
+      <image class="avatar" src="{{userInfo.avatar || '/images/default-avatar.png'}}" />
+      <view class="user-detail">
+        <text class="name">{{userInfo.nickname || '用户'}}</text>
+        <text class="role">家属</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 老人列表 -->
+  <view class="elderly-section">
+    <view class="section-title">我的家人</view>
+    <view class="elderly-list">
+      <view class="elderly-card" wx:for="{{elderlyList}}" wx:key="id" bindtap="goToElderly" data-id="{{item.id}}">
+        <view class="elderly-info">
+          <text class="elderly-name">{{item.name}}</text>
+          <text class="elderly-room">{{item.bed?.name || '未分配床位'}}</text>
+        </view>
+        <view class="elderly-status">
+          <text class="care-level">{{item.care_level}}级护理</text>
+        </view>
+      </view>
+      <view class="empty-state" wx:if="{{elderlyList.length === 0}}">
+        <text class="empty-state-text">暂无关联老人</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷功能 -->
+  <view class="quick-actions">
+    <view class="action-item service-call" bindtap="goToServiceCall">
+      <image class="action-icon" src="/images/service-call.png" />
+      <text class="action-label">服务呼叫</text>
+    </view>
+    <view class="action-item" bindtap="goToCareRecords">
+      <image class="action-icon" src="/images/care.png" />
+      <text class="action-label">护理记录</text>
+    </view>
+    <view class="action-item" bindtap="goToBills">
+      <image class="action-icon" src="/images/bill.png" />
+      <text class="action-label">费用账单</text>
+    </view>
+    <view class="action-item" bindtap="contact">
+      <image class="action-icon" src="/images/phone.png" />
+      <text class="action-label">联系客服</text>
+    </view>
+  </view>
+
+  <!-- 最新护理记录 -->
+  <view class="recent-care">
+    <view class="section-title">
+      <text>最新护理</text>
+      <text class="more" bindtap="goToCareRecords">更多 ></text>
+    </view>
+    <view class="care-list">
+      <view class="care-item" wx:for="{{recentCare}}" wx:key="id">
+        <view class="care-time">{{item.recorded_at}}</view>
+        <view class="care-content">
+          <text class="care-item">{{item.care_item?.name}}</text>
+          <text class="care-staff">{{item.staff?.nickname}}</text>
+        </view>
+      </view>
+      <view class="empty-state" wx:if="{{recentCare.length === 0}}">
+        <text class="empty-state-text">暂无护理记录</text>
+      </view>
+    </view>
+  </view>
+</view>

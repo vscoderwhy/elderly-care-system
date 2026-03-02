@@ -1,0 +1,164 @@
+/* pages/index/index.wxss */
+.header {
+  background: linear-gradient(135deg, #1AAD19 0%, #179f16 100%);
+  padding: 40rpx 24rpx 60rpx;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.user-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 8rpx;
+}
+
+.role {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.elderly-section {
+  margin-top: -30rpx;
+}
+
+.section-title {
+  padding: 24rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.more {
+  font-size: 26rpx;
+  color: #999999;
+  font-weight: 400;
+}
+
+.elderly-list {
+  padding: 0 24rpx;
+}
+
+.elderly-card {
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.elderly-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.elderly-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.elderly-room {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.care-level {
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
+  background-color: #e8f5e9;
+  color: #4caf50;
+  border-radius: 4rpx;
+}
+
+.quick-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 24rpx;
+  background-color: #ffffff;
+  margin: 24rpx;
+  border-radius: 12rpx;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.action-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 12rpx;
+}
+
+.action-label {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.recent-care {
+  padding: 0 24rpx;
+}
+
+.care-list {
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+}
+
+.care-item {
+  display: flex;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #eeeeee;
+}
+
+.care-item:last-child {
+  border-bottom: none;
+}
+
+.care-time {
+  width: 160rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.care-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.care-item {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.care-staff {
+  font-size: 24rpx;
+  color: #999999;
+}
