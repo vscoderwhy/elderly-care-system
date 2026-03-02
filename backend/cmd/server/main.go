@@ -39,6 +39,9 @@ func main() {
 	medicationRepo := repository.NewMedicationRepository(db)
 	visitRepo := repository.NewVisitRepository(db)
 	alertRepo := repository.NewAlertRepository(db)
+	permissionRepo := repository.NewPermissionRepository(db)
+	menuRepo := repository.NewMenuRepository(db)
+	roleRepo := repository.NewRoleRepository(db)
 	// Init services
 	authService := service.NewAuthService(userRepo, redisClient, cfg.JWT.Secret)
 	userService := service.NewUserService(userRepo)
@@ -51,6 +54,7 @@ func main() {
 	medicationService := service.NewMedicationService(medicationRepo, elderlyRepo)
 	visitService := service.NewVisitService(visitRepo, elderlyRepo)
 	alertService := service.NewAlertService(alertRepo, elderlyRepo, medicationRepo, billRepo, careRepo, roomRepo)
+	rbacService := service.NewRBACService(permissionRepo, menuRepo, roleRepo, userRepo)
 
 	// Init handlers
 	authHandler := handler.NewAuthHandler(authService)
@@ -65,6 +69,7 @@ func main() {
 	medicationHandler := handler.NewMedicationHandler(medicationService)
 	visitHandler := handler.NewVisitHandler(visitService)
 	alertHandler := handler.NewAlertHandler(alertService)
+	rbacHandler := handler.NewRBACHandler(rbacService)
 
 	// Setup router
 	router := gin.Default()
@@ -192,6 +197,28 @@ func main() {
 		protected.POST("/alert-rules", alertHandler.CreateRule)
 		protected.PUT("/alert-rules/:id", alertHandler.UpdateRule)
 		protected.DELETE("/alert-rules/:id", alertHandler.DeleteRule)
+
+		// RBAC routes (权限管理)
+		protected.POST("/system/init", rbacHandler.InitializeSystem)
+		protected.GET("/system/menus", rbacHandler.ListMenus)
+		protected.POST("/system/menus", rbacHandler.CreateMenu)
+		protected.PUT("/system/menus/:id", rbacHandler.UpdateMenu)
+		protected.DELETE("/system/menus/:id", rbacHandler.DeleteMenu)
+		protected.GET("/system/permissions", rbacHandler.ListPermissions)
+		protected.POST("/system/permissions", rbacHandler.CreatePermission)
+		protected.PUT("/system/permissions/:id", rbacHandler.UpdatePermission)
+		protected.DELETE("/system/permissions/:id", rbacHandler.DeletePermission)
+		protected.GET("/system/roles", rbacHandler.ListRoles)
+		protected.GET("/system/roles/:id", rbacHandler.GetRole)
+		protected.PUT("/system/roles/:id/permissions", rbacHandler.AssignPermissionsToRole)
+		protected.PUT("/system/roles/:id/menus", rbacHandler.AssignMenusToRole)
+		protected.GET("/system/users", rbacHandler.ListUsers)
+		protected.GET("/system/users/:id/roles", rbacHandler.GetUserRoles)
+		protected.PUT("/system/users/:id/roles", rbacHandler.UpdateUserRoles)
+		protected.POST("/system/users/:id/roles", rbacHandler.AssignRoleToUser)
+		protected.DELETE("/system/users/:id/roles", rbacHandler.RemoveRoleFromUser)
+		protected.GET("/user/menus", rbacHandler.GetUserMenus)
+		protected.GET("/user/permissions", rbacHandler.GetUserPermissions)
 	}
 
 	// Start server

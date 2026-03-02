@@ -110,3 +110,17 @@ func (r *UserRepository) CountStaff() (int64, error) {
 		Count(&count).Error
 	return count, err
 }
+
+// RemoveRole 移除用户角色
+func (r *UserRepository) RemoveRole(userID uint, roleID uint) error {
+	return r.db.Exec("DELETE FROM user_roles WHERE user_id = ? AND role_id = ?", userID, roleID).Error
+}
+
+// GetUserRoles 获取用户的所有角色
+func (r *UserRepository) GetUserRoles(userID uint) ([]model.Role, error) {
+	var roles []model.Role
+	err := r.db.Joins("JOIN user_roles ON user_roles.role_id = roles.id").
+		Where("user_roles.user_id = ?", userID).
+		Find(&roles).Error
+	return roles, err
+}
