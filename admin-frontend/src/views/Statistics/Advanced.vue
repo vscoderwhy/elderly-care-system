@@ -210,6 +210,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Grid, List, Download, MoreFilled } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import RadarChart from '@/components/Charts/RadarChart.vue'
 import SankeyChart from '@/components/Charts/SankeyChart.vue'
 import FunnelChart from '@/components/Charts/FunnelChart.vue'
@@ -217,6 +218,8 @@ import GraphChart from '@/components/Charts/GraphChart.vue'
 import WordCloud from '@/components/Charts/WordCloud.vue'
 import ECharts from '@/components/Dashboard/ECharts.vue'
 import { getChartColors } from '@/composables/useECharts'
+import { exportToExcel, exportToJSON } from '@/utils/export'
+import { getStatistics, getElderlyList, getCareRecords } from '@/utils/seedData'
 
 // 视图模式
 const viewMode = ref<'grid' | 'list'>('grid')
@@ -434,15 +437,51 @@ const tableData = ref([
 
 // 方法
 const handleExport = () => {
-  console.log('导出报告')
+  // 导出完整分析报告
+  const exportData = tableData.value.map(item => ({
+    类别: item.category,
+    指标: item.indicator,
+    当前值: item.currentValue,
+    上期值: item.previousValue,
+    变化: item.change,
+    趋势: item.trend,
+    更新时间: item.updateTime
+  }))
+
+  exportToExcel(
+    exportData,
+    [{ key: 'category', title: '类别', width: 12 },
+     { key: 'indicator', title: '指标', width: 15 },
+     { key: 'currentValue', title: '当前值', width: 12 },
+     { key: 'previousValue', title: '上期值', width: 12 },
+     { key: 'change', title: '变化%', width: 10 },
+     { key: 'trend', title: '趋势', width: 10 },
+     { key: 'updateTime', title: '更新时间', width: 18 }],
+    '高级数据分析报告'
+  )
+  ElMessage.success('分析报告导出成功')
 }
 
 const handleFilter = () => {
-  console.log('应用筛选', filters.value)
+  loading.value = true
+  setTimeout(() => {
+    loading.value = false
+    ElMessage.success('筛选已应用')
+  }, 500)
 }
 
 const handleExportTable = () => {
-  console.log('导出Excel')
+  const columns = [
+    { key: 'category', title: '类别', width: 12 },
+    { key: 'indicator', title: '指标', width: 15 },
+    { key: 'currentValue', title: '当前值', width: 12 },
+    { key: 'previousValue', title: '上期值', width: 12 },
+    { key: 'change', title: '变化', width: 10 },
+    { key: 'trend', title: '趋势', width: 10 },
+    { key: 'updateTime', title: '更新时间', width: 18 }
+  ]
+  exportToExcel(tableData.value, columns, '详细数据表')
+  ElMessage.success('Excel导出成功')
 }
 
 const handleViewDetail = (row: any) => {

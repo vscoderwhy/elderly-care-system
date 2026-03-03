@@ -1,114 +1,169 @@
 <template>
-  <div class="stat-card" :class="{ 'is-dark': isDark }">
-    <div class="stat-card__header">
-      <div class="stat-card__icon" :style="{ background: iconBg }">
-        <component :is="icon" class="stat-card__icon-svg" />
-      </div>
-      <el-tag v-if="trend" :type="trendType" size="small">
-        <template v-if="trend > 0">
-          <el-icon><ArrowUp /></el-icon>
-          {{ trend }}%
-        </template>
-        <template v-else>
-          <el-icon><ArrowDown /></el-icon>
-          {{ Math.abs(trend) }}%
-        </template>
-      </el-tag>
+  <div class="stat-card" :class="[`stat-${type}`, { 'is-loading': loading }]">
+    <!-- 背景装饰 -->
+    <div class="stat-bg">
+      <div class="stat-bg-circle stat-bg-circle-1"></div>
+      <div class="stat-bg-circle stat-bg-circle-2"></div>
     </div>
-    <div class="stat-card__content">
-      <div class="stat-card__value">
-        <CountUp :end-val="value" :duration="1500" :options="{ separator: ',' }" />
-        <span v-if="unit" class="stat-card__unit">{{ unit }}</span>
+
+    <!-- 卡片内容 -->
+    <div class="stat-content">
+      <div class="stat-header">
+        <div class="stat-icon" :style="{ background: iconBg }">
+          <component :is="icon" />
+        </div>
+        <div class="stat-extra">
+          <slot name="extra"></slot>
+        </div>
       </div>
-      <div class="stat-card__label">{{ label }}</div>
+
+      <div class="stat-body">
+        <div class="stat-value-wrapper">
+          <count-to
+            :start-val="0"
+            :end-val="displayValue"
+            :duration="1000"
+            :decimals="decimals"
+            class="stat-value"
+          />
+          <span v-if="unit" class="stat-unit">{{ unit }}</span>
+        </div>
+
+        <div class="stat-label">{{ label }}</div>
+
+        <!-- 趋势指示 -->
+        <div v-if="trend !== undefined" class="stat-trend" :class="trendClass">
+          <el-icon>
+            <component :is="trendIcon" />
+          </el-icon>
+          <span>{{ Math.abs(trend) }}%</span>
+          <span class="trend-text">{{ trendText }}</span>
+        </div>
+      </div>
+
+      <!-- 迷你图表 -->
+      <div v-if="showSparkline" class="stat-sparkline">
+        <slot name="sparkline">
+          <ECharts :option="sparklineOption" height="60px" />
+        </slot>
+      </div>
     </div>
-    <div v-if="showSparkline" class="stat-card__sparkline">
-      <ECharts :option="sparklineOption" :height="40" />
+
+    <!-- 加载遮罩 -->
+    <div v-if="loading" class="stat-loading">
+      <el-icon class="is-loading"><Loading /></el-icon>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
-import { ArrowUp, ArrowDown } from '@element-plus/icons-vue'
-import { useDarkMode } from '@/composables/useDarkMode'
-import CountUp from './CountUp.vue'
+import { computed, ref } from 'vue'
+import { ArrowUp, ArrowDown, Minus, Loading } from '@element-plus/icons-vue'
+import CountTo from 'vue-count-to'
 import ECharts from './ECharts.vue'
 
 interface Props {
   label: string
-  value: number
+  value: number | string
   unit?: string
+  type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
   icon?: any
-  color?: string
   trend?: number
+  decimals?: number
+  loading?: boolean
+  sparkline?: number[]
   showSparkline?: boolean
-  sparklineData?: number[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   unit: '',
-  color: '#409eff',
-  trend: 0,
+  type: 'primary',
+  decimals: 0,
+  loading: false,
   showSparkline: false,
-  sparklineData: () => []
+  sparkline: () => []
 })
 
-const { isDark } = useDarkMode()
+// 显示数值（处理字符串类型）
+const displayValue = computed(() => {
+  if (typeof props.value === 'string') {
+    return parseFloat(props.value) || 0
+  }
+  return props.value
+})
 
+// 趋势相关
+const trendClass = computed(() => {
+  if (!props.trend) return ''
+  return props.trend > 0 ? 'trend-up' : props.trend < 0 ? 'trend-down' : 'trend-flat'
+})
+
+const trendIcon = computed(() => {
+  if (!props.trend) return Minus
+  return props.trend > 0 ? ArrowUp : ArrowDown
+})
+
+const trendText = computed(() => {
+  if (!props.trend) return '持平'
+  return props.trend > 0 ? '较上期' : '较上期'
+})
+
+// 图标背景色
 const iconBg = computed(() => {
-  return `linear-gradient(135deg, ${props.color}22 0%, ${props.color}44 100%)`
+  const gradients = {
+    primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    success: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+    warning: 'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)',
+    danger: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    info: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)'
+  }
+  return gradients[props.type]
 })
 
-const trendType = computed(() => {
-  if (props.trend > 0) return 'success'
-  if (props.trend < 0) return 'danger'
-  return 'info'
-})
-
+// 迷你图表配置
 const sparklineOption = computed(() => {
-  const isDarkMode = isDark.value
+  const colors = {
+    primary: '#667eea',
+    success: '#67c23a',
+    warning: '#e6a23c',
+    danger: '#f56c6c',
+    info: '#909399'
+  }
+
   return {
-    grid: {
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0
-    },
+    grid: { top: 0, left: 0, right: 0, bottom: 0 },
     xAxis: {
       type: 'category',
       show: false,
-      data: props.sparklineData.map((_, i) => i)
+      data: props.sparkline.map((_, i) => i)
     },
     yAxis: {
       type: 'value',
       show: false
     },
-    series: [
-      {
-        data: props.sparklineData,
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        lineStyle: {
-          color: props.color,
-          width: 2
-        },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: `${props.color}44` },
-              { offset: 1, color: `${props.color}00` }
-            ]
-          }
+    series: [{
+      type: 'line',
+      data: props.sparkline,
+      smooth: true,
+      symbol: 'none',
+      lineStyle: {
+        color: colors[props.type],
+        width: 2
+      },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: colors[props.type] + '40' },
+            { offset: 1, color: colors[props.type] + '05' }
+          ]
         }
       }
-    ]
+    }]
   }
 })
 </script>
@@ -120,80 +175,170 @@ const sparklineOption = computed(() => {
   background: var(--card-bg);
   border-radius: var(--card-border-radius);
   box-shadow: var(--card-shadow);
-  transition: var(--transition-base);
   overflow: hidden;
+  transition: var(--transition-base);
+  cursor: pointer;
 
   &:hover {
+    transform: translateY(-4px);
     box-shadow: var(--card-shadow-hover);
-    transform: translateY(-2px);
+
+    .stat-bg-circle {
+      transform: scale(1.2);
+    }
   }
 
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  &__icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &__icon-svg {
-    width: 24px;
-    height: 24px;
-    color: v-bind(color);
-  }
-
-  &__content {
-    position: relative;
-    z-index: 1;
-  }
-
-  &__value {
-    display: flex;
-    align-items: baseline;
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-  }
-
-  &__unit {
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-secondary);
-    margin-left: 4px;
-  }
-
-  &__label {
-    font-size: 14px;
-    color: var(--text-secondary);
-  }
-
-  &__sparkline {
-    margin-top: 12px;
+  &.is-loading {
+    pointer-events: none;
+    opacity: 0.6;
   }
 }
 
-// 背景装饰
-.stat-card::before {
-  content: '';
+.stat-bg {
   position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    v-bind(color)11 0%,
-    transparent 70%
-  );
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   pointer-events: none;
+  z-index: 0;
+}
+
+.stat-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &-1 {
+    width: 120px;
+    height: 120px;
+    top: -40px;
+    right: -40px;
+    background: var(--primary-color);
+  }
+
+  &-2 {
+    width: 80px;
+    height: 80px;
+    bottom: -30px;
+    left: -30px;
+    background: var(--success-color);
+  }
+}
+
+.stat-content {
+  position: relative;
+  z-index: 1;
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #fff;
+}
+
+.stat-body {
+  margin-top: 8px;
+}
+
+.stat-value-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stat-unit {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.stat-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+
+  &.trend-up {
+    color: var(--success-color);
+    background: rgba(103, 194, 58, 0.1);
+  }
+
+  &.trend-down {
+    color: var(--danger-color);
+    background: rgba(245, 108, 108, 0.1);
+  }
+
+  &.trend-flat {
+    color: var(--info-color);
+  }
+
+  .trend-text {
+    margin-left: 4px;
+    opacity: 0.8;
+  }
+}
+
+.stat-sparkline {
+  margin-top: 12px;
+  height: 60px;
+}
+
+.stat-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+
+  .el-icon {
+    font-size: 32px;
+    color: var(--primary-color);
+  }
+}
+
+[data-theme='dark'] {
+  .stat-loading {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .stat-value {
+    color: var(--text-primary);
+  }
 }
 </style>

@@ -1,18 +1,13 @@
 import { ref, onUnmounted } from 'vue'
 
-export interface WebSocketMessage {
-  type: string
-  data: any
-  timestamp: number
-}
-
 export interface WebSocketOptions {
-  onMessage?: (message: WebSocketMessage) => void
+  onMessage?: (data: any) => void
   onOpen?: () => void
   onClose?: () => void
   onError?: (error: Event) => void
   reconnect?: boolean
   reconnectInterval?: number
+  maxReconnectAttempts?: number
 }
 
 export const useWebSocket = (url: string, options: WebSocketOptions = {}) => {
@@ -22,12 +17,14 @@ export const useWebSocket = (url: string, options: WebSocketOptions = {}) => {
     onClose,
     onError,
     reconnect = true,
-    reconnectInterval = 3000
+    reconnectInterval = 3000,
+    maxReconnectAttempts = 5
   } = options
 
   const ws = ref<WebSocket | null>(null)
   const connected = ref(false)
-  const reconnectTimer = ref<number>()
+  const reconnectAttempts = ref(0)
+  const data = ref<any>(null)
 
   const connect = () => {
     if (ws.value?.readyState === WebSocket.OPEN) {
@@ -39,117 +36,107 @@ export const useWebSocket = (url: string, options: WebSocketOptions = {}) => {
 
       ws.value.onopen = () => {
         connected.value = true
-        console.log('[WebSocket] Connected')
+        reconnectAttempts.value = 0
         onOpen?.()
-        // 清除重连定时器
-        if (reconnectTimer.value) {
-          clearTimeout(reconnectTimer.value)
-          reconnectTimer.value = undefined
-        }
       }
 
       ws.value.onmessage = (event) => {
         try {
-          const message: WebSocketMessage = JSON.parse(event.data)
+          const message = JSON.parse(event.data)
+          data.value = message
           onMessage?.(message)
         } catch (error) {
-          console.error('[WebSocket] Failed to parse message:', error)
+          // 非JSON消息，直接传递文本
+          onMessage?.(event.data)
         }
       }
 
       ws.value.onclose = () => {
         connected.value = false
-        console.log('[WebSocket] Closed')
         onClose?.()
 
         // 自动重连
-        if (reconnect && !reconnectTimer.value) {
-          reconnectTimer.value = window.setTimeout(() => {
-            console.log('[WebSocket] Reconnecting...')
+        if (reconnect && reconnectAttempts.value < maxReconnectAttempts) {
+          reconnectAttempts.value++
+          setTimeout(() => {
             connect()
           }, reconnectInterval)
         }
       }
 
       ws.value.onerror = (error) => {
-        console.error('[WebSocket] Error:', error)
         onError?.(error)
       }
     } catch (error) {
-      console.error('[WebSocket] Failed to connect:', error)
+      console.error('[WebSocket] Connection error:', error)
     }
   }
 
   const disconnect = () => {
-    if (reconnectTimer.value) {
-      clearTimeout(reconnectTimer.value)
-      reconnectTimer.value = undefined
+    if (ws.value) {
+      ws.value.close()
+      ws.value = null
+      connected.value = false
     }
-    ws.value?.close()
-    ws.value = null
-    connected.value = false
   }
 
-  const send = (data: any) => {
+  const send = (message: any) => {
     if (ws.value?.readyState === WebSocket.OPEN) {
-      ws.value.send(JSON.stringify(data))
+      ws.value.send(typeof message === 'string' ? message : JSON.stringify(message))
     } else {
-      console.warn('[WebSocket] Cannot send message: not connected')
+      console.warn('[WebSocket] Cannot send message: connection not open')
     }
   }
 
-  // 组件卸载时断开连接
   onUnmounted(() => {
     disconnect()
   })
 
   return {
-    ws,
     connected,
+    data,
     connect,
     disconnect,
     send
   }
 }
 
-// 轮询降级方案
+/**
+ * 轮询Hook（当WebSocket不可用时使用）
+ */
 export const usePolling = (callback: () => Promise<void>, interval: number = 5000) => {
-  const timer = ref<number>()
-  const isActive = ref(false)
+  let timer: number | null = null
+  const isRunning = ref(false)
 
   const start = () => {
-    if (isActive.value) return
-    isActive.value = true
+    if (isRunning.value) return
 
-    const poll = async () => {
-      try {
-        await callback()
-      } catch (error) {
-        console.error('[Polling] Error:', error)
-      }
-    }
+    isRunning.value = true
 
     // 立即执行一次
-    poll()
-    // 定时执行
-    timer.value = window.setInterval(poll, interval)
+    callback()
+
+    // 设置定时器
+    timer = window.setInterval(() => {
+      callback()
+    }, interval)
   }
 
   const stop = () => {
-    if (timer.value) {
-      clearInterval(timer.value)
-      timer.value = undefined
+    if (timer) {
+      clearInterval(timer)
+      timer = null
     }
-    isActive.value = false
+    isRunning.value = false
   }
 
-  // 组件卸载时停止轮询
+  // 组件卸载时自动停止
   onUnmounted(() => {
     stop()
   })
 
   return {
-    isActive,
+    isRunning,
     start,
     stop
   }

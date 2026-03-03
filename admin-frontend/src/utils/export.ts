@@ -1,351 +1,253 @@
 import * as XLSX from 'xlsx'
 
-// 导出接口
-interface ExportOptions {
-  filename?: string
-  sheetName?: string
-  header?: string[]
-  data: any[]
-  columns?: Column[]
-}
-
-interface Column {
+export interface ExcelColumn {
   key: string
   title: string
   width?: number
-  formatter?: (value: any, row: any) => any
+  formatter?: (row: any) => any
 }
 
 /**
- * 导出数据为 Excel
+ * 导出Excel
  */
-export const exportExcel = (options: ExportOptions) => {
-  const {
-    filename = '导出数据',
-    sheetName = 'Sheet1',
-    header = [],
-    data,
-    columns = []
-  } = options
+export const exportToExcel = (
+  data: any[],
+  columns: ExcelColumn[],
+  filename: string
+) => {
+  if (!data || data.length === 0) {
+    console.warn('No data to export')
+    return
+  }
+
+  // 格式化数据
+  const formattedData = data.map(row => {
+    const obj: any = {}
+    columns.forEach(col => {
+      obj[col.title] = col.formatter ? col.formatter(row) : row[col.key]
+    })
+    return obj
+  })
+
+  // 创建工作表
+  const worksheet = XLSX.utils.json_to_sheet(formattedData)
+
+  // 设置列宽
+  const colWidths = columns.map(col => ({ wch: col.width || 15 }))
+  worksheet['!cols'] = colWidths
 
   // 创建工作簿
   const workbook = XLSX.utils.book_new()
-
-  // 准备导出数据
-  let exportData: any[][] = []
-
-  if (columns.length > 0) {
-    // 使用列配置
-    // 表头
-    exportData.push(columns.map(col => col.title))
-
-    // 数据行
-    data.forEach(row => {
-      const dataRow = columns.map(col => {
-        const value = row[col.key]
-        return col.formatter ? col.formatter(value, row) : value
-      })
-      exportData.push(dataRow)
-    })
-  } else if (header.length > 0) {
-    // 使用表头配置
-    exportData.push(header)
-
-    // 数据行（假设数据是对象数组）
-    if (data.length > 0 && typeof data[0] === 'object') {
-      data.forEach(row => {
-        const dataRow = header.map(() => '')
-        Object.keys(row).forEach((key, index) => {
-          if (index < header.length) {
-            dataRow[index] = row[key]
-          }
-        })
-        exportData.push(dataRow)
-      })
-    }
-  } else {
-    // 直接使用数据
-    exportData = data
-  }
-
-  // 创建工作表
-  const worksheet = XLSX.utils.aoa_to_sheet(exportData)
-
-  // 设置列宽
-  if (columns.length > 0) {
-    const colWidths = columns.map(col => ({
-      wch: col.width || 15
-    }))
-    worksheet['!cols'] = colWidths
-  }
-
-  // 添加工作表到工作簿
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
 
   // 生成文件名（带时间戳）
   const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   const fullFilename = `${filename}_${timestamp}.xlsx`
 
-  // 导出文件
+  // 下载
   XLSX.writeFile(workbook, fullFilename)
 }
 
 /**
- * 导出老人名单
+ * 导出老人列表
  */
 export const exportElderlyList = (data: any[]) => {
-  const columns: Column[] = [
+  const columns: ExcelColumn[] = [
+    { key: 'id', title: 'ID', width: 8 },
     { key: 'name', title: '姓名', width: 12 },
     { key: 'gender', title: '性别', width: 8 },
     { key: 'age', title: '年龄', width: 8 },
-    { key: 'idCard', title: '身份证号', width: 20 },
-    { key: 'phone', title: '联系电话', width: 15 },
+    { key: 'bedNumber', title: '床位号', width: 15 },
     { key: 'careLevel', title: '护理等级', width: 12 },
-    { key: 'bedNumber', title: '床位号', width: 12 },
-    { key: 'checkInDate', title: '入住日期', width: 15 },
-    { key: 'familyName', title: '家属联系人', width: 12 },
-    { key: 'familyPhone', title: '家属电话', width: 15 },
-    { key: 'healthStatus', title: '健康状况', width: 15 },
-    { key: 'remark', title: '备注', width: 20 }
+    { key: 'healthScore', title: '健康评分', width: 12 },
+    { key: 'status', title: '状态', width: 10, formatter: (row) => {
+      const map: Record<string, string> = {
+        'in_hospital': '在院',
+        'hospitalized': '住院',
+        'leave': '请假',
+        'discharged': '出院'
+      }
+      return map[row.status] || row.status
+    }},
+    { key: 'admissionDate', title: '入院日期', width: 15 },
+    { key: 'emergencyContact', title: '紧急联系人', width: 15 },
+    { key: 'emergencyPhone', title: '紧急电话', width: 15 },
+    { key: 'medicalHistory', title: '既往病史', width: 30 }
   ]
-
-  exportExcel({
-    filename: '老人名单',
-    sheetName: '老人信息',
-    columns,
-    data
-  })
+  exportToExcel(data, columns, '老人名单')
 }
 
 /**
  * 导出护理记录
  */
 export const exportCareRecords = (data: any[]) => {
-  const columns: Column[] = [
+  const columns: ExcelColumn[] = [
+    { key: 'id', title: 'ID', width: 8 },
     { key: 'elderlyName', title: '老人姓名', width: 12 },
     { key: 'careType', title: '护理类型', width: 15 },
-    { key: 'careItem', title: '护理项目', width: 20 },
-    { key: 'nurseName', title: '护理员', width: 12 },
+    { key: 'content', title: '护理内容', width: 40 },
     { key: 'careTime', title: '护理时间', width: 18 },
-    { key: 'duration', title: '时长(分钟)', width: 12 },
-    { key: 'description', title: '护理内容', width: 30 },
-    { key: 'result', title: '护理结果', width: 20 },
-    { key: 'evaluation', title: '评价', width: 15 },
-    { key: 'status', title: '状态', width: 10 }
+    { key: 'nurseName', title: '护理人员', width: 12 },
+    { key: 'evaluation', title: '效果评价', width: 15 },
+    { key: 'tags', title: '标签', width: 20, formatter: (row) => {
+      return Array.isArray(row.tags) ? row.tags.join(', ') : ''
+    }}
   ]
-
-  exportExcel({
-    filename: '护理记录',
-    sheetName: '护理记录',
-    columns,
-    data
-  })
+  exportToExcel(data, columns, '护理记录')
 }
 
 /**
  * 导出财务报表
  */
 export const exportFinancialReport = (data: any[]) => {
-  const columns: Column[] = [
+  const columns: ExcelColumn[] = [
+    { key: 'billNo', title: '账单号', width: 20 },
     { key: 'elderlyName', title: '老人姓名', width: 12 },
-    { key: 'billNo', title: '账单号', width: 18 },
+    { key: 'bedNumber', title: '床位号', width: 12 },
     { key: 'billType', title: '费用类型', width: 12 },
     { key: 'amount', title: '金额(元)', width: 12 },
     { key: 'billDate', title: '账单日期', width: 15 },
     { key: 'dueDate', title: '应付日期', width: 15 },
     { key: 'paidDate', title: '支付日期', width: 15 },
-    { key: 'paymentMethod', title: '支付方式', width: 12 },
-    { key: 'status', title: '状态', width: 10 },
-    { key: 'remark', title: '备注', width: 20 }
+    { key: 'paymentMethod', title: '支付方式', width: 12, formatter: (row) => {
+      const map: Record<string, string> = {
+        'wechat': '微信支付',
+        'alipay': '支付宝',
+        'cash': '现金',
+        'pos': 'POS机',
+        'bank': '银行转账'
+      }
+      return map[row.paymentMethod] || row.paymentMethod || '-'
+    }},
+    { key: 'status', title: '状态', width: 10, formatter: (row) => {
+      const map: Record<string, string> = {
+        'paid': '已支付',
+        'unpaid': '未支付',
+        'overdue': '已逾期'
+      }
+      return map[row.status] || row.status
+    }},
+    { key: 'remark', title: '备注', width: 30 }
   ]
-
-  exportExcel({
-    filename: '财务报表',
-    sheetName: '账单明细',
-    columns,
-    data
-  })
+  exportToExcel(data, columns, '财务报表')
 }
 
 /**
  * 导出健康数据
  */
 export const exportHealthData = (data: any[]) => {
-  const columns: Column[] = [
+  const columns: ExcelColumn[] = [
+    { key: 'id', title: 'ID', width: 8 },
     { key: 'elderlyName', title: '老人姓名', width: 12 },
-    { key: 'recordDate', title: '记录日期', width: 15 },
-    { key: 'bloodPressure', title: '血压(mmHg)', width: 15 },
-    { key: 'heartRate', title: '心率(次/分)', width: 15 },
-    { key: 'bloodSugar', title: '血糖(mmol/L)', width: 15 },
-    { key: 'temperature', title: '体温(℃)', width: 12 },
-    { key: 'weight', title: '体重(kg)', width: 12 },
-    { key: 'oxygenSaturation', title: '血氧(%)', width: 12 },
+    { key: 'type', title: '数据类型', width: 12 },
+    { key: 'value', title: '数值', width: 12 },
+    { key: 'unit', title: '单位', width: 8 },
+    { key: 'recordTime', title: '记录时间', width: 18 },
     { key: 'recordBy', title: '记录人', width: 12 },
-    { key: 'remark', title: '备注', width: 20 }
+    { key: 'isAbnormal', title: '是否异常', width: 10, formatter: (row) => row.isAbnormal ? '是' : '否' },
+    { key: 'remark', title: '备注', width: 30 }
   ]
-
-  exportExcel({
-    filename: '健康数据',
-    sheetName: '健康记录',
-    columns,
-    data
-  })
+  exportToExcel(data, columns, '健康数据')
 }
 
 /**
- * 导出护理任务
+ * 导出员工列表
  */
-export const exportNursingTasks = (data: any[]) => {
-  const columns: Column[] = [
-    { key: 'taskNo', title: '任务编号', width: 15 },
-    { key: 'elderlyName', title: '老人姓名', width: 12 },
-    { key: 'taskType', title: '任务类型', width: 15 },
-    { key: 'taskContent', title: '任务内容', width: 30 },
-    { key: 'nurseName', title: '执行人', width: 12 },
-    { key: 'planTime', title: '计划时间', width: 18 },
-    { key: 'executeTime', title: '执行时间', width: 18 },
-    { key: 'duration', title: '时长(分钟)', width: 12 },
-    { key: 'status', title: '状态', width: 10 },
-    { key: 'remark', title: '备注', width: 20 }
-  ]
-
-  exportExcel({
-    filename: '护理任务',
-    sheetName: '任务列表',
-    columns,
-    data
-  })
-}
-
-/**
- * 导出考勤记录
- */
-export const exportAttendanceRecords = (data: any[]) => {
-  const columns: Column[] = [
-    { key: 'employeeName', title: '姓名', width: 12 },
+export const exportStaffList = (data: any[]) => {
+  const columns: ExcelColumn[] = [
+    { key: 'id', title: 'ID', width: 8 },
+    { key: 'name', title: '姓名', width: 12 },
+    { key: 'gender', title: '性别', width: 8 },
     { key: 'department', title: '部门', width: 15 },
     { key: 'position', title: '职位', width: 12 },
-    { key: 'date', title: '日期', width: 15 },
-    { key: 'checkInTime', title: '上班时间', width: 15 },
-    { key: 'checkOutTime', title: '下班时间', width: 15 },
-    { key: 'workHours', title: '工作时长', width: 12 },
-    { key: 'status', title: '状态', width: 10 },
-    { key: 'lateMinutes', title: '迟到(分钟)', width: 12 },
-    { key: 'earlyMinutes', title: '早退(分钟)', width: 12 }
+    { key: 'phone', title: '联系电话', width: 15 },
+    { key: 'status', title: '状态', width: 10, formatter: (row) => {
+      const map: Record<string, string> = {
+        'active': '在职',
+        'leave': '请假',
+        'resigned': '离职'
+      }
+      return map[row.status] || row.status
+    }},
+    { key: 'hireDate', title: '入职日期', width: 15 }
   ]
-
-  exportExcel({
-    filename: '考勤记录',
-    sheetName: '考勤明细',
-    columns,
-    data
-  })
+  exportToExcel(data, columns, '员工名单')
 }
 
 /**
- * 导出库存清单
+ * 导出为CSV
  */
-export const exportInventoryList = (data: any[]) => {
-  const columns: Column[] = [
-    { key: 'itemNo', title: '物品编号', width: 15 },
-    { key: 'itemName', title: '物品名称', width: 20 },
-    { key: 'category', title: '分类', width: 12 },
-    { key: 'specification', title: '规格', width: 15 },
-    { key: 'unit', title: '单位', width: 8 },
-    { key: 'quantity', title: '库存数量', width: 12 },
-    { key: 'safetyStock', title: '安全库存', width: 12 },
-    { key: 'unitPrice', title: '单价(元)', width: 12 },
-    { key: 'totalValue', title: '总金额(元)', width: 12 },
-    { key: 'supplier', title: '供应商', width: 15 },
-    { key: 'lastPurchaseDate', title: '最后采购日期', width: 15 }
-  ]
+export const exportToCSV = (
+  data: any[],
+  columns: ExcelColumn[],
+  filename: string
+) => {
+  if (!data || data.length === 0) {
+    console.warn('No data to export')
+    return
+  }
 
-  exportExcel({
-    filename: '库存清单',
-    sheetName: '库存明细',
-    columns,
-    data
+  // CSV头部
+  let csv = columns.map(col => col.title).join(',') + '\n'
+
+  // CSV数据
+  data.forEach(row => {
+    const values = columns.map(col => {
+      let value = col.formatter ? col.formatter(row) : row[col.key]
+      // 处理包含逗号的字段
+      if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+        value = `"${value.replace(/"/g, '""')}"`
+      }
+      return value ?? ''
+    })
+    csv += values.join(',') + '\n'
   })
+
+  // 添加BOM以支持中文
+  const BOM = '\uFEFF'
+  const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' })
+
+  // 下载
+  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  const fullFilename = `${filename}_${timestamp}.csv`
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = fullFilename
+  link.click()
+  URL.revokeObjectURL(link.href)
 }
 
 /**
- * 导出访视记录
+ * 导出为JSON
  */
-export const exportVisitRecords = (data: any[]) => {
-  const columns: Column[] = [
-    { key: 'elderlyName', title: '老人姓名', width: 12 },
-    { key: 'visitorName', title: '访客姓名', width: 12 },
-    { key: 'relation', title: '关系', width: 10 },
-    { key: 'visitDate', title: '访视日期', width: 15 },
-    { key: 'visitTime', title: '访视时间', width: 15 },
-    { key: 'duration', title: '时长(分钟)', width: 12 },
-    { key: 'purpose', title: '来访目的', width: 20 },
-    { key: 'gift', title: '携带物品', width: 15 },
-    { key: 'remark', title: '备注', width: 20 },
-    { key: 'recordBy', title: '记录人', width: 12 }
-  ]
+export const exportToJSON = (
+  data: any[],
+  filename: string
+) => {
+  if (!data || data.length === 0) {
+    console.warn('No data to export')
+    return
+  }
 
-  exportExcel({
-    filename: '访视记录',
-    sheetName: '访视明细',
-    columns,
-    data
-  })
-}
-
-/**
- * 导出多Sheet数据
- */
-export const exportMultiSheet = (sheets: {
-  name: string
-  data: any[][]
-  columns?: Column[]
-}[], filename = '导出数据') => {
-  const workbook = XLSX.utils.book_new()
-
-  sheets.forEach(sheet => {
-    let exportData: any[][] = []
-
-    if (sheet.columns && sheet.columns.length > 0) {
-      // 表头
-      exportData.push(sheet.columns.map(col => col.title))
-
-      // 数据行
-      sheet.data.forEach((row: any) => {
-        const dataRow = sheet.columns!.map(col => {
-          const value = row[col.key]
-          return col.formatter ? col.formatter(value, row) : value
-        })
-        exportData.push(dataRow)
-      })
-    } else {
-      exportData = sheet.data
-    }
-
-    const worksheet = XLSX.utils.aoa_to_sheet(exportData)
-
-    if (sheet.columns) {
-      worksheet['!cols'] = sheet.columns.map(col => ({
-        wch: col.width || 15
-      }))
-    }
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
-  })
+  const json = JSON.stringify(data, null, 2)
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' })
 
   const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-  XLSX.writeFile(workbook, `${filename}_${timestamp}.xlsx`)
+  const fullFilename = `${filename}_${timestamp}.json`
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = fullFilename
+  link.click()
+  URL.revokeObjectURL(link.href)
 }
 
-export default {
-  exportExcel,
-  exportElderlyList,
-  exportCareRecords,
-  exportFinancialReport,
-  exportHealthData,
-  exportNursingTasks,
-  exportAttendanceRecords,
-  exportInventoryList,
-  exportVisitRecords,
-  exportMultiSheet
+/**
+ * 导出Excel（别名，供ExportButton组件使用）
+ */
+export const exportExcel = (params: {
+  data: any[]
+  columns: ExcelColumn[]
+  filename: string
+}) => {
+  exportToExcel(params.data, params.columns, params.filename)
 }
