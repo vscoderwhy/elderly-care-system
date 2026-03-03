@@ -1,0 +1,72 @@
+# Backend Backend Package Configuration
+# Database Configuration
+database:
+  host: localhost
+  port: 5432
+  user: elderly_care
+  password: your_password
+  dbname: elderly_care_db
+  sslmode: disable
+  maxIdleConns: 10
+  maxOpenConns: 100
+  connMaxLifetime: 3600
+
+# Redis Configuration
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+  poolSize: 100
+
+# Server Configuration
+server:
+  port: 8080
+  mode: debug  # debug, release, test
+  readTimeout: 60
+  writeTimeout: 60
+
+# JWT Configuration
+jwt:
+  secret: your_jwt_secret_key_here
+  expireHours: 168
+  issuer: elderly-care-system
+
+# Upload Configuration
+upload:
+  maxFileSize: 10485760  # 10MB
+  uploadPath: ./uploads
+  allowedTypes:
+    - image/jpeg
+    - image/png
+    - image/gif
+    - application/pdf
+
+# WeChat Configuration
+wechat:
+  appId: your_wechat_app_id
+  appSecret: your_wechat_app_secret
+  # Payment
+  mchId: your_mch_id
+  apiKey: your_api_key
+  certPath: ./certs/apiclient_cert.pem
+  keyPath: ./certs/apiclient_key.pem
+
+# Alipay Configuration
+alipay:
+  appId: your_alipay_app_id
+  privateKey: your_private_key
+  publicKey: your_public_key
+
+# SMS Configuration
+sms:
+  accessKeyId: your_access_key_id
+  accessKeySecret: your_access_key_secret
+  signName: your_sms_sign_name
+  templateCode: your_template_code
+
+# OSS Configuration (Optional)
+oss:
+  endpoint: your_oss_endpoint
+  accessKeyId: your_access_key_id
+  accessKeySecret: your_access_key_secret
+  bucketName: your_bucket_name

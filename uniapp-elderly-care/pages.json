@@ -1,0 +1,149 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "首页",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/elderly/info",
+      "style": {
+        "navigationBarTitleText": "老人信息"
+      }
+    },
+    {
+      "path": "pages/elderly/health",
+      "style": {
+        "navigationBarTitleText": "健康数据"
+      }
+    },
+    {
+      "path": "pages/care/records",
+      "style": {
+        "navigationBarTitleText": "护理记录"
+      }
+    },
+    {
+      "path": "pages/care/evaluation",
+      "style": {
+        "navigationBarTitleText": "服务评价"
+      }
+    },
+    {
+      "path": "pages/health/detail",
+      "style": {
+        "navigationBarTitleText": "健康详情"
+      }
+    },
+    {
+      "path": "pages/health/trend",
+      "style": {
+        "navigationBarTitleText": "健康趋势"
+      }
+    },
+    {
+      "path": "pages/bills/list",
+      "style": {
+        "navigationBarTitleText": "费用账单",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/bills/detail",
+      "style": {
+        "navigationBarTitleText": "账单详情"
+      }
+    },
+    {
+      "path": "pages/bills/payment",
+      "style": {
+        "navigationBarTitleText": "在线支付"
+      }
+    },
+    {
+      "path": "pages/visits/appointment",
+      "style": {
+        "navigationBarTitleText": "探视预约"
+      }
+    },
+    {
+      "path": "pages/visits/history",
+      "style": {
+        "navigationBarTitleText": "预约历史"
+      }
+    },
+    {
+      "path": "pages/visits/detail",
+      "style": {
+        "navigationBarTitleText": "预约详情"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
+    },
+    {
+      "path": "pages/profile/settings",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/profile/notifications",
+      "style": {
+        "navigationBarTitleText": "消息通知"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "养老院",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8",
+    "backgroundColorTop": "#F8F8F8",
+    "backgroundColorBottom": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#409EFF",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/icons/home.png",
+        "selectedIconPath": "static/icons/home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/elderly/info",
+        "iconPath": "static/icons/user.png",
+        "selectedIconPath": "static/icons/user-active.png",
+        "text": "老人"
+      },
+      {
+        "pagePath": "pages/care/records",
+        "iconPath": "static/icons/care.png",
+        "selectedIconPath": "static/icons/care-active.png",
+        "text": "护理"
+      },
+      {
+        "pagePath": "pages/bills/list",
+        "iconPath": "static/icons/bill.png",
+        "selectedIconPath": "static/icons/bill-active.png",
+        "text": "账单"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "iconPath": "static/icons/mine.png",
+        "selectedIconPath": "static/icons/mine-active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "uniIdRouter": {}
+}

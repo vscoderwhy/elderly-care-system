@@ -1,0 +1,162 @@
+:root {
+  /* 浅色主题 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f2f5;
+  --bg-tertiary: #f5f7fa;
+  --text-primary: #303133;
+  --text-secondary: #606266;
+  --text-tertiary: #909399;
+  --border-color: #dcdfe6;
+  --border-color-light: #e4e7ed;
+  --border-color-lighter: #ebeef5;
+  --primary-color: #409eff;
+  --success-color: #67c23a;
+  --warning-color: #e6a23c;
+  --danger-color: #f56c6c;
+  --info-color: #909399;
+
+  /* Element Plus 覆盖 */
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f0f2f5;
+  --el-text-color-primary: #303133;
+  --el-text-color-regular: #606266;
+  --el-text-color-secondary: #909399;
+  --el-fill-color-light: #f5f7fa;
+  --el-fill-color-lighter: #fafafa;
+  --el-border-color-lighter: #ebeef5;
+  --el-border-color: #dcdfe6;
+  --el-border-color-light: #e4e7ed;
+  --el-box-shadow-light: 0 0 12px rgba(0, 0, 0, 0.12);
+  --el-box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+  /* BI 看板颜色 */
+  --chart-color-1: #5470c6;
+  --chart-color-2: #91cc75;
+  --chart-color-3: #fac858;
+  --chart-color-4: #ee6666;
+  --chart-color-5: #73c0de;
+  --chart-color-6: #3ba272;
+  --chart-color-7: #fc8452;
+  --chart-color-8: #9a60b4;
+  --chart-color-9: #ea7ccc;
+
+  /* 渐变色 */
+  --gradient-blue: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-green: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+  --gradient-orange: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%);
+  --gradient-red: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+
+  /* 卡片效果 */
+  --card-bg: #ffffff;
+  --card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: 0 4px 20px 0 rgba(0, 0, 0, 0.15);
+  --card-border-radius: 8px;
+
+  /* 过渡动画 */
+  --transition-base: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+[data-theme='dark'] {
+  /* 深色主题 */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #141414;
+  --bg-tertiary: #0f0f0f;
+  --text-primary: #e5eaf3;
+  --text-secondary: #cfd3dc;
+  --text-tertiary: #a3a6ad;
+  --border-color: #363636;
+  --border-color-light: #4c4d4f;
+  --border-color-lighter: #414243;
+
+  /* Element Plus 深色主题覆盖 */
+  --el-bg-color: #141414;
+  --el-bg-color-page: #0a0a0a;
+  --el-text-color-primary: #e5eaf3;
+  --el-text-color-regular: #cfd3dc;
+  --el-text-color-secondary: #a3a6ad;
+  --el-fill-color-light: #1a1a1a;
+  --el-fill-color-lighter: #262727;
+  --el-border-color-lighter: #414243;
+  --el-border-color: #363636;
+  --el-border-color-light: #4c4d4f;
+  --el-box-shadow-light: 0 0 12px rgba(0, 0, 0, 0.3);
+  --el-box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+
+  /* BI 看板深色颜色 */
+  --chart-color-1: #5a8fff;
+  --chart-color-2: #75c968;
+  --chart-color-3: #ffcc00;
+  --chart-color-4: #ff6b6b;
+  --chart-color-5: #4ecdc4;
+  --chart-color-6: #45b7d1;
+  --chart-color-7: #96ceb4;
+  --chart-color-8: #d4a5a5;
+  --chart-color-9: #9b59b6;
+
+  /* 深色渐变 */
+  --gradient-blue: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-green: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-orange: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-red: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+
+  /* 卡片深色效果 */
+  --card-bg: #1f1f1f;
+  --card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* 全局过渡 */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Element Plus 组件深色模式适配 */
+[data-theme='dark'] .el-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .el-table {
+  background-color: var(--card-bg);
+}
+
+[data-theme='dark'] .el-table__body tr {
+  background-color: var(--card-bg);
+}
+
+[data-theme='dark'] .el-table__body tr:hover > td {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .el-menu {
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+}
+
+[data-theme='dark'] .el-menu-item {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme='dark'] .el-menu-item:hover {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .el-drawer {
+  background-color: var(--bg-primary);
+}
+
+[data-theme='dark'] .el-dialog {
+  background-color: var(--card-bg);
+}
+
+[data-theme='dark'] .el-input__wrapper {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .el-select-dropdown {
+  background-color: var(--card-bg);
+}
+
+[data-theme='dark'] .el-popper {
+  background-color: var(--card-bg);
+}
