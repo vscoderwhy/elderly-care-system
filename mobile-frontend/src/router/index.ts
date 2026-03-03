@@ -53,6 +53,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '今日任务', showTabbar: true }
       },
       {
+        path: 'attendance',
+        name: 'Attendance',
+        component: () => import('@/views/Attendance/Index.vue'),
+        meta: { title: '考勤打卡' }
+      },
+      {
         path: 'bills',
         name: 'Bills',
         component: () => import('@/views/Bills/List.vue'),

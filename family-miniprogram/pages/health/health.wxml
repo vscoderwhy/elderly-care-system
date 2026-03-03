@@ -1,0 +1,57 @@
+<!-- pages/health/health.wxml -->
+<view class="container">
+  <!-- 最新健康数据 -->
+  <view class="health-cards">
+    <view class="health-card" wx:for="{{healthData}}" wx:key="record_type">
+      <view class="card-header">
+        <text class="card-title">{{item.name}}</text>
+        <text class="card-time">{{item.time}}</text>
+      </view>
+      <view class="card-value">
+        <text class="value">{{item.value}}</text>
+        <text class="unit" wx:if="{{item.unit}}">{{item.unit}}</text>
+      </view>
+      <view class="card-status {{item.status}}">
+        <text>{{item.statusText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 健康趋势图表 -->
+  <view class="chart-section">
+    <view class="section-header">
+      <text class="section-title">健康趋势</text>
+      <view class="tabs">
+        <text class="tab {{activeTab === 'week' ? 'active' : ''}}" bindtap="switchTab" data-tab="week">周</text>
+        <text class="tab {{activeTab === 'month' ? 'active' : ''}}" bindtap="switchTab" data-tab="month">月</text>
+      </view>
+    </view>
+    <view class="chart-container">
+      <canvas type="2d" id="healthChart" class="health-chart"></canvas>
+    </view>
+  </view>
+
+  <!-- 健康记录列表 -->
+  <view class="records-section">
+    <view class="section-header">
+      <text class="section-title">健康记录</text>
+      <view class="filter">
+        <text class="filter-item {{filterType === '' ? 'active' : ''}}" bindtap="filterRecords" data-type="">全部</text>
+        <text class="filter-item {{filterType === 'blood_pressure' ? 'active' : ''}}" bindtap="filterRecords" data-type="blood_pressure">血压</text>
+        <text class="filter-item {{filterType === 'blood_sugar' ? 'active' : ''}}" bindtap="filterRecords" data-type="blood_sugar">血糖</text>
+        <text class="filter-item {{filterType === 'temperature' ? 'active' : ''}}" bindtap="filterRecords" data-type="temperature">体温</text>
+      </view>
+    </view>
+    <view class="record-list">
+      <view class="record-item" wx:for="{{records}}" wx:key="id">
+        <view class="record-type">{{item.typeName}}</view>
+        <view class="record-value">{{item.value}} {{item.unit}}</view>
+        <view class="record-time">{{item.time}}</view>
+        <view class="record-recorder">记录人: {{item.recorder}}</view>
+      </view>
+    </view>
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">
+      <text>加载更多</text>
+    </view>
+  </view>
+</view>

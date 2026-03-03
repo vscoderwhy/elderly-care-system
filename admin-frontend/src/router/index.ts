@@ -18,6 +18,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Dashboard.vue')
       },
       {
+        path: 'statistics',
+        name: 'Statistics',
+        component: () => import('@/views/Statistics/Dashboard.vue')
+      },
+      {
+        path: 'statistics/report',
+        name: 'StatisticsReport',
+        component: () => import('@/views/Statistics/Report.vue')
+      },
+      {
         path: 'elderly',
         name: 'Elderly',
         component: () => import('@/views/Elderly/Index.vue')
@@ -61,6 +71,11 @@ const routes: RouteRecordRaw[] = [
         path: 'medications',
         name: 'Medications',
         component: () => import('@/views/Medications/Index.vue')
+      },
+      {
+        path: 'inventory',
+        name: 'Inventory',
+        component: () => import('@/views/Inventory/Index.vue')
       },
       {
         path: 'visits',

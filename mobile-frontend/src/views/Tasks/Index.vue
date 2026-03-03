@@ -25,6 +25,16 @@
       </div>
     </div>
 
+    <!-- 考勤打卡入口 -->
+    <div class="attendance-entry" @click="goToAttendance">
+      <van-icon name="clock-o" size="24" color="#667eea" />
+      <div class="entry-info">
+        <div class="entry-title">考勤打卡</div>
+        <div class="entry-desc">点击进行上下班打卡</div>
+      </div>
+      <van-icon name="arrow" />
+    </div>
+
     <!-- 任务列表 -->
     <div class="task-list">
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
@@ -91,6 +101,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import instance from '@/api'
 
@@ -114,6 +125,8 @@ const selectedDate = ref([
   (new Date().getMonth() + 1).toString().padStart(2, '0'),
   new Date().getDate().toString().padStart(2, '0')
 ])
+
+const router = useRouter()
 
 const taskStats = computed(() => {
   const total = tasks.value.length
@@ -199,6 +212,10 @@ const completeTask = async (task: Task) => {
   }
 }
 
+const goToAttendance = () => {
+  router.push('/attendance')
+}
+
 onMounted(() => {
   loadTasks()
 })
@@ -259,6 +276,34 @@ onMounted(() => {
   font-size: 12px;
   color: #999;
   margin-top: 4px;
+}
+
+.attendance-entry {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #fff;
+  margin: 15px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+}
+
+.entry-info {
+  flex: 1;
+}
+
+.entry-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.entry-desc {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
 }
 
 .task-list {

@@ -1,0 +1,64 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/health/health",
+    "pages/visits/visits",
+    "pages/bills/bills",
+    "pages/profile/profile",
+    "pages/visit-book/visit-book"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#4A90E2",
+    "navigationBarTitleText": "家属端",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#4A90E2",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/health/health",
+        "text": "健康",
+        "iconPath": "images/health.png",
+        "selectedIconPath": "images/health-active.png"
+      },
+      {
+        "pagePath": "pages/visits/visits",
+        "text": "探视",
+        "iconPath": "images/visit.png",
+        "selectedIconPath": "images/visit-active.png"
+      },
+      {
+        "pagePath": "pages/bills/bills",
+        "text": "账单",
+        "iconPath": "images/bill.png",
+        "selectedIconPath": "images/bill-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/profile.png",
+        "selectedIconPath": "images/profile-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于探视预约签到"
+    }
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -13,6 +13,10 @@
           <el-icon><DataBoard /></el-icon>
           <span>工作台</span>
         </el-menu-item>
+        <el-menu-item index="/statistics">
+          <el-icon><TrendCharts /></el-icon>
+          <span>数据报表</span>
+        </el-menu-item>
         <el-menu-item index="/elderly">
           <el-icon><User /></el-icon>
           <span>老人管理</span>
@@ -90,6 +94,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import {
   DataBoard,
+  TrendCharts,
   User,
   Notebook,
   Medicine,

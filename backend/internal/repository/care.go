@@ -2,6 +2,8 @@ package repository
 
 import (
 	"elderly-care-system/internal/model"
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -184,4 +186,40 @@ func (r *CareRepository) CountByDate(date interface{}) (int64, error) {
 		Where("DATE(recorded_at) = ?", date).
 		Count(&count).Error
 	return count, err
+}
+
+// GetHealthTrend 获取健康数据趋势
+func (r *CareRepository) GetHealthTrend(elderlyID string, days int) ([]model.HealthRecord, error) {
+	var records []model.HealthRecord
+
+	query := r.db.Preload("Elderly").Preload("Recorder").
+		Order("recorded_at DESC").
+		Limit(days * 10) // 假设每天最多10条记录
+
+	if elderlyID != "" {
+		query = query.Where("elderly_id = ?", elderlyID)
+	}
+
+	err := query.Find(&records).Error
+	return records, err
+}
+
+// FindRecordsByDateRange 查询日期范围内的护理记录
+func (r *CareRepository) FindRecordsByDateRange(start, end time.Time) ([]model.CareRecord, int64, error) {
+	var records []model.CareRecord
+	var total int64
+
+	query := r.db.Model(&model.CareRecord{}).
+		Where("recorded_at >= ? AND recorded_at < ?", start, end)
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = query.Preload("Elderly").Preload("CareItem").Preload("Staff").
+		Order("recorded_at DESC").
+		Find(&records).Error
+
+	return records, total, err
 }

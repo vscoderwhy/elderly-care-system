@@ -42,8 +42,9 @@ type OSSConfig struct {
 }
 
 type WeChatConfig struct {
-	AppID     string
-	AppSecret string
+	AppID      string
+	AppSecret  string
+	TemplateID string // 订阅消息模板ID
 }
 
 func Load() *Config {
@@ -75,8 +76,9 @@ func Load() *Config {
 			Bucket:    getEnv("OSS_BUCKET", ""),
 		},
 		WeChat: WeChatConfig{
-			AppID:     getEnv("WECHAT_APP_ID", ""),
-			AppSecret: getEnv("WECHAT_APP_SECRET", ""),
+			AppID:      getEnv("WECHAT_APP_ID", ""),
+			AppSecret:  getEnv("WECHAT_APP_SECRET", ""),
+			TemplateID: getEnv("WECHAT_TEMPLATE_ID", ""),
 		},
 	}
 }

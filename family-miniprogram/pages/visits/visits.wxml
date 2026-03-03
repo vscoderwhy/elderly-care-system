@@ -1,0 +1,49 @@
+<!-- pages/visits/visits.wxml -->
+<view class="container">
+  <!-- 预约按钮 -->
+  <view class="book-btn">
+    <button type="primary" bindtap="goToBook">预约探视</button>
+  </view>
+
+  <!-- 即将到来的探视 -->
+  <view class="section" wx:if="{{upcomingVisits.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">即将到来</text>
+    </view>
+    <view class="visit-card upcoming">
+      <view class="visit-date">
+        <text class="day">{{upcomingVisits[0].day}}</text>
+        <text class="month">{{upcomingVisits[0].month}}月</text>
+      </view>
+      <view class="visit-info">
+        <view class="visit-time">{{upcomingVisits[0].timeRange}}</view>
+        <view class="visit-status">{{upcomingVisits[0].statusText}}</view>
+      </view>
+      <view class="visit-actions">
+        <button wx:if="{{upcomingVisits[0].canCancel}}" size="mini" bindtap="cancelVisit" data-id="{{upcomingVisits[0].id}}">取消</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 探视记录 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">探视记录</text>
+    </view>
+    <view class="visit-list">
+      <view class="visit-item" wx:for="{{visitList}}" wx:key="id">
+        <view class="visit-left">
+          <view class="visit-date-mini">{{item.date}}</view>
+          <view class="visit-time-mini">{{item.timeRange}}</view>
+        </view>
+        <view class="visit-right">
+          <view class="visit-status-mini {{item.statusClass}}">{{item.statusText}}</view>
+          <view class="visit-note" wx:if="{{item.notes}}">备注: {{item.notes}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{visitList.length === 0}}">
+      <text>暂无探视记录</text>
+    </view>
+  </view>
+</view>
