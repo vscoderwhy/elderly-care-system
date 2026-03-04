@@ -1,13 +1,29 @@
 <template>
-  <router-view />
+  <!-- 全局Loading -->
+  <GlobalLoading />
+
+  <!-- 全局错误边界 -->
+  <ErrorBoundary @error="handleGlobalError">
+    <router-view />
+  </ErrorBoundary>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
+import GlobalLoading from '@/components/Loading/GlobalLoading.vue'
+import ErrorBoundary from '@/components/ErrorBoundary.vue'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 // 初始化暗黑模式
 const { updateTheme } = useDarkMode()
+
+// 全局错误处理
+const { handleApiError } = useErrorHandler()
+
+const handleGlobalError = (error: Error) => {
+  handleApiError(error, '页面发生错误')
+}
 
 onMounted(() => {
   updateTheme()

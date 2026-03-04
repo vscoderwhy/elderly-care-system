@@ -283,6 +283,7 @@ import {
 } from '@element-plus/icons-vue'
 import ECharts from '@/components/Dashboard/ECharts.vue'
 import { getChartColors } from '@/composables/useECharts'
+import { getElderlyList, getCareRecords, getBills } from '@/utils/seedData'
 
 const route = useRoute()
 const router = router
@@ -291,22 +292,26 @@ const activeTab = ref('health')
 const elderlyId = computed(() => route.params.id as string)
 
 // 老人信息
-const elderlyInfo = ref({
+const elderlyInfo = ref<any>({
   id: '',
-  name: '张奶奶',
-  gender: '女',
-  age: 78,
-  birthDate: '1946-01-01',
-  idCard: '110101194601011234',
-  careLevel: 'level2',
-  bedNumber: '3号楼201',
-  checkInDate: '2023-06-15',
-  stayDays: 268,
-  phone: '138****1234',
-  familyName: '张先生',
-  familyPhone: '13812345678',
-  familyRelation: '父子',
-  status: 'active',
+  name: '',
+  gender: '',
+  age: 0,
+  birthDate: '',
+  idCard: '',
+  careLevel: '',
+  bedNumber: '',
+  admissionDate: '',
+  checkInDate: '',
+  stayDays: 0,
+  phone: '',
+  emergencyContact: '',
+  emergencyPhone: '',
+  familyName: '',
+  familyPhone: '',
+  familyRelation: '',
+  status: '',
+  healthScore: 0,
   avatar: ''
 })
 
@@ -321,52 +326,120 @@ const healthData = ref([
 ])
 
 // 护理记录
-const careRecords = ref([
-  {
-    id: 1,
-    type: '日常护理',
-    nurse: '赵护士',
-    time: '2026-03-03 14:30',
-    content: '测量血压、体温，协助用餐，老人状态良好',
-    images: []
-  },
-  {
-    id: 2,
-    type: '康复训练',
-    nurse: '陈康复师',
-    time: '2026-03-03 10:00',
-    content: '上肢关节活动训练30分钟，老人配合度良好',
-    images: []
-  },
-  {
-    id: 3,
-    type: '健康监测',
-    nurse: '周护士',
-    time: '2026-03-02 16:00',
-    content: '血压130/85mmHg，心率72次/分，体温36.4℃',
-    images: []
-  }
-])
+const careRecords = ref<any[]>([])
 
 // 账单
-const bills = ref([
-  { billNo: 'B202603001', billType: '床位费', amount: 3500, billDate: '2026-03-01', dueDate: '2026-03-10', status: 'unpaid' },
-  { billNo: 'B202603002', billType: '护理费', amount: 1800, billDate: '2026-03-01', dueDate: '2026-03-10', status: 'unpaid' },
-  { billNo: 'B202603003', billType: '餐费', amount: 900, billDate: '2026-03-01', dueDate: '2026-03-10', status: 'paid' }
-])
+const bills = ref<any[]>([])
 
 // 探视记录
-const visits = ref([
-  { visitorName: '张先生', relation: '儿子', visitDate: '2026-02-28', duration: 120, purpose: '看望老人，送去生活用品', remark: '' },
-  { visitorName: '李女士', relation: '女儿', visitDate: '2026-02-20', duration: 90, purpose: '周末探视', remark: '' }
-])
+const visits = ref<any[]>([])
 
 // 照片
-const photos = ref([
-  { url: '', date: '2026-03-01' },
-  { url: '', date: '2026-02-28' },
-  { url: '', date: '2026-02-25' },
-  { url: '', date: '2026-02-20' },
+const photos = ref<any[]>([])
+
+// 加载数据
+const loadData = () => {
+  // 从seedData获取老人信息
+  const elderly = getElderlyList().find(e => e.id === Number(elderlyId.value))
+
+  if (elderly) {
+    elderlyInfo.value = {
+      ...elderly,
+      checkInDate: elderly.admissionDate,
+      stayDays: calculateStayDays(elderly.admissionDate),
+      familyName: elderly.emergencyContact,
+      familyPhone: elderly.emergencyPhone,
+      familyRelation: '家属'
+    }
+
+    // 获取护理记录
+    const allCareRecords = getCareRecords()
+    careRecords.value = allCareRecords
+      .filter(r => r.elderlyId === elderly.id)
+      .slice(0, 10)
+      .map(r => ({
+        id: r.id,
+        type: r.careType,
+        nurse: r.nurseName,
+        time: r.careTime,
+        content: r.content,
+        evaluation: r.evaluation,
+        images: r.images || []
+      }))
+
+    // 获取账单
+    const allBills = getBills()
+    bills.value = allBills
+      .filter(b => b.elderlyId === elderly.id)
+      .slice(0, 10)
+  } else {
+    // 未找到老人
+    console.error('老人不存在:', elderlyId.value)
+  }
+}
+
+// 计算入住天数
+const calculateStayDays = (admissionDate: string) => {
+  const admission = new Date(admissionDate)
+  const now = new Date()
+  const diff = now.getTime() - admission.getTime()
+  return Math.floor(diff / (1000 * 60 * 60 * 24))
+}
+
+// 健康图表配置
+const healthChartOption = computed(() => {
+  const colors = getChartColors()
+  return {
+    grid: {
+      top: '10%',
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      borderColor: 'transparent',
+      textStyle: { color: '#fff' }
+    },
+    legend: {
+      data: ['血压', '血糖', '体温'],
+      bottom: 0
+    },
+    xAxis: {
+      type: 'category',
+      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    },
+    yAxis: {
+      type: 'value',
+      name: '数值'
+    },
+    series: [
+      {
+        name: '血压(收缩)',
+        type: 'line',
+        data: [125, 128, 126, 130, 127, 124, 126],
+        smooth: true,
+        itemStyle: { color: colors[0] }
+      },
+      {
+        name: '血糖',
+        type: 'line',
+        data: [6.2, 6.5, 6.3, 6.8, 6.4, 6.1, 6.3],
+        smooth: true,
+        itemStyle: { color: colors[1] }
+      },
+      {
+        name: '体温',
+        type: 'line',
+        data: [36.5, 36.6, 36.4, 36.7, 36.5, 36.3, 36.5],
+        smooth: true,
+        itemStyle: { color: colors[2] }
+      }
+    ]
+  }
+})
   { url: '', date: '2026-02-15' },
   { url: '', date: '2026-02-10' }
 ])

@@ -8,6 +8,7 @@ import './styles/global.scss'
 
 import App from './App.vue'
 import router from './router'
+import { setupGlobalErrorHandler } from './composables/useErrorHandler'
 
 const app = createApp(App)
 
@@ -29,5 +30,8 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 // 初始化主题
 const { updateTheme } = await import('./composables/useDarkMode')
 updateTheme()
+
+// 全局错误处理
+setupGlobalErrorHandler(app, router)
 
 app.mount('#app')

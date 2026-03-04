@@ -9,9 +9,11 @@ declare module 'vue' {
   export interface GlobalComponents {
     CountUp: typeof import('./src/components/Dashboard/CountUp.vue')['default']
     ECharts: typeof import('./src/components/Dashboard/ECharts.vue')['default']
+    ErrorBoundary: typeof import('./src/components/ErrorBoundary.vue')['default']
     ExportButton: typeof import('./src/components/Export/ExportButton.vue')['default']
     FileUpload: typeof import('./src/components/Upload/FileUpload.vue')['default']
     FunnelChart: typeof import('./src/components/Charts/FunnelChart.vue')['default']
+    GlobalLoading: typeof import('./src/components/Loading/GlobalLoading.vue')['default']
     GraphChart: typeof import('./src/components/Charts/GraphChart.vue')['default']
     ImageUpload: typeof import('./src/components/Upload/ImageUpload.vue')['default']
     KPIGauge: typeof import('./src/components/Dashboard/KPIGauge.vue')['default']
