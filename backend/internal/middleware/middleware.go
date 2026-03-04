@@ -1,17 +1,41 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/elderly-care/internal/config"
 )
 
+// ValidationError 验证错误
+type ValidationError struct {
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
+}
+
+// BusinessError 业务错误
+type BusinessError struct {
+	Code    int
+	Message string
+}
+
+func (e *BusinessError) Error() string {
+	return fmt.Sprintf("code=%d message=%s", e.Code, e.Message)
+}
+
 type Middleware struct {
 	jwtSecret string
+	mu        sync.RWMutex
+	lastClean time.Time
 }
 
 func NewMiddleware(cfg *config.Config) *Middleware {
@@ -118,12 +142,171 @@ func (m *Middleware) Logger() gin.HandlerFunc {
 		end := time.Now()
 		latency := end.Sub(start)
 
-		// 记录慢请求
-		if latency > time.Second {
-			// TODO: 记录到日志系统
+		// 获取请求ID
+		requestID := c.GetString("requestId")
+
+		// 构建日志条目
+		logEntry := fmt.Sprintf(
+			"[%s] %s %s | status=%d | latency=%v | client_ip=%s | user_agent=%s",
+			requestID,
+			c.Request.Method,
+			path,
+			c.Writer.Status(),
+			latency,
+			c.ClientIP(),
+			c.Request.UserAgent(),
+		)
+
+		if query != "" {
+			logEntry += fmt.Sprintf(" | query=%s", query)
 		}
 
-		// TODO: 存储到数据库
+		// 记录慢请求
+		if latency > time.Second {
+			logEntry += " | SLOW_REQUEST"
+		}
+
+		// 记录错误响应
+		if c.Writer.Status() >= 400 {
+			logEntry += fmt.Sprintf(" | ERROR_RESPONSE")
+		}
+
+		// TODO: 使用结构化日志库（如 zap, logrus）
+		fmt.Println(logEntry)
+	}
+}
+
+// RequestID 请求ID中间件
+func (m *Middleware) RequestID() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 尝试从请求头获取请求ID
+		requestID := c.GetHeader("X-Request-ID")
+
+		// 如果没有则生成新的
+		if requestID == "" {
+			requestID = uuid.New().String()
+		}
+
+		// 存储到上下文
+		c.Set("requestId", requestID)
+
+		// 设置到响应头
+		c.Writer.Header().Set("X-Request-ID", requestID)
+
+		c.Next()
+	}
+}
+
+// RateLimiter 简单的限流中间件（基于内存）
+// 生产环境建议使用 Redis
+func (m *Middleware) RateLimiter(requestsPerMinute int) gin.HandlerFunc {
+	type client struct {
+		lastRequest time.Time
+		requests    int
+	}
+
+	clients := make(map[string]*client)
+
+	return func(c *gin.Context) {
+		ip := c.ClientIP()
+		now := time.Now()
+
+		// 清理过期的客户端记录（每分钟清理一次）
+		if now.Minute() != m.lastClean.Minute() {
+			m.mu.Lock()
+			for key, client := range clients {
+				if now.Sub(client.lastRequest) > time.Minute {
+					delete(clients, key)
+				}
+			}
+			m.lastClean = now
+			m.mu.Unlock()
+		}
+
+		m.mu.Lock()
+		currentClient, exists := clients[ip]
+		if !exists {
+			clients[ip] = &client{
+				lastRequest: now,
+				requests:    1,
+			}
+			m.mu.Unlock()
+			c.Next()
+			return
+		}
+
+		// 如果距离上次请求超过1分钟，重置计数
+		if now.Sub(currentClient.lastRequest) > time.Minute {
+			currentClient.requests = 1
+			currentClient.lastRequest = now
+			m.mu.Unlock()
+			c.Next()
+			return
+		}
+
+		// 检查是否超过限制
+		if currentClient.requests >= requestsPerMinute {
+			m.mu.Unlock()
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"code":    429,
+				"message": "请求过于频繁，请稍后再试",
+			})
+			c.Abort()
+			return
+		}
+
+		currentClient.requests++
+		currentClient.lastRequest = now
+		m.mu.Unlock()
+
+		c.Next()
+	}
+}
+
+// Security 安全头中间件
+func (m *Middleware) Security() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("X-Content-Type-Options", "nosniff")
+		c.Writer.Header().Set("X-Frame-Options", "DENY")
+		c.Writer.Header().Set("X-XSS-Protection", "1; mode=block")
+		c.Writer.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		c.Writer.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		c.Writer.Header().Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+
+		c.Next()
+	}
+}
+
+// ErrorHandler 统一错误处理中间件
+func (m *Middleware) ErrorHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+
+		// 检查是否有错误
+		if len(c.Errors) > 0 {
+			err := c.Errors.Last()
+
+			// 根据错误类型返回不同的响应
+			switch e := err.Err.(type) {
+			case *ValidationError:
+				c.JSON(http.StatusBadRequest, gin.H{
+					"code":    400,
+					"message": e.Message,
+				})
+			case *BusinessError:
+				c.JSON(http.StatusBadRequest, gin.H{
+					"code":    e.Code,
+					"message": e.Message,
+				})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"code":    500,
+					"message": "服务器内部错误",
+				})
+			}
+
+			return
+		}
 	}
 }
 
@@ -132,10 +315,25 @@ func (m *Middleware) Recovery() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				// TODO: 记录panic
+				requestID := c.GetString("requestId")
+
+				// 记录panic详情
+				panicLog := fmt.Sprintf(
+					"[PANIC] requestId=%s | error=%v | stack=%s",
+					requestID,
+					err,
+					fmt.Sprintf("%+v", err),
+				)
+
+				// TODO: 发送到日志系统或监控系统
+				fmt.Println(panicLog)
+
+				// 返回友好的错误信息
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"code":    500,
-					"message": "服务器内部错误",
+					"code":       500,
+					"message":    "服务器内部错误",
+					"requestId":  requestID,
+					"timestamp":  time.Now().Unix(),
 				})
 				c.Abort()
 			}

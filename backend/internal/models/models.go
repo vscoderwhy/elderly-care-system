@@ -16,11 +16,52 @@ type User struct {
 	Phone     string         `json:"phone" gorm:"size:20"`
 	Email     string         `json:"email" gorm:"size:100"`
 	Role      string         `json:"role" gorm:"size:20;not null;default:'user'"` // admin, nurse, family
-	Status    string         `json:"status" gorm:"size:20;not null;default:'active'"`
-	LastLoginAt *time.Time    `json:"lastLoginAt"`
+	Status    string         `json:"status" gorm:"size:20;not null;default:'active'"` // active, inactive, locked
+	LastLoginAt *time.Time   `json:"lastLoginAt"`
+	Department string        `json:"department" gorm:"size:50"` // 部门
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+}
+
+// Role 角色表
+type Role struct {
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	Name        string         `json:"name" gorm:"uniqueIndex;size:50;not null"`
+	DisplayName string         `json:"displayName" gorm:"size:100;not null"`
+	Description string         `json:"description" gorm:"type:text"`
+	Status      string         `json:"status" gorm:"size:20;not null;default:'active'"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+}
+
+// Permission 权限表
+type Permission struct {
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	Name        string         `json:"name" gorm:"uniqueIndex;size:100;not null"`
+	DisplayName string         `json:"displayName" gorm:"size:100;not null"`
+	Module      string         `json:"module" gorm:"size:50;not null"` // elderly, care, finance, system
+	Action      string         `json:"action" gorm:"size:50;not null"` // view, create, update, delete, export
+	Description string         `json:"description" gorm:"type:text"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+}
+
+// RolePermission 角色权限关联表
+type RolePermission struct {
+	ID           uint           `json:"id" gorm:"primaryKey"`
+	RoleID       uint           `json:"roleId" gorm:"not null;index"`
+	PermissionID uint           `json:"permissionId" gorm:"not null;index"`
+	CreatedAt    time.Time      `json:"createdAt"`
+}
+
+// UserRole 用户角色关联表
+type UserRole struct {
+	ID        uint           `json:"id" gorm:"primaryKey"`
+	UserID    uint           `json:"userId" gorm:"not null;index"`
+	RoleID    uint           `json:"roleId" gorm:"not null;index"`
+	CreatedAt time.Time      `json:"createdAt"`
 }
 
 // Elderly 老人表

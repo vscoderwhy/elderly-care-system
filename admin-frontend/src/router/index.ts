@@ -141,6 +141,15 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: '/care/scheduler',
+        name: 'CareScheduler',
+        component: () => import('@/components/Care/TaskScheduler.vue'),
+        meta: {
+          title: '任务调度',
+          requiresAuth: true
+        }
+      },
+      {
         path: '/finance',
         name: 'Finance',
         redirect: '/finance/bills',
@@ -164,6 +173,51 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Finance/Payments.vue'),
         meta: {
           title: '支付记录',
+          requiresAuth: true
+        }
+      },
+      {
+        path: '/health',
+        name: 'Health',
+        redirect: '/health/medication',
+        meta: {
+          title: '健康管理',
+          requiresAuth: true
+        }
+      },
+      {
+        path: '/health/medication',
+        name: 'HealthMedication',
+        component: () => import('@/views/Health/Medication.vue'),
+        meta: {
+          title: '药品管理',
+          requiresAuth: true
+        }
+      },
+      {
+        path: '/health/alerts',
+        name: 'HealthAlerts',
+        component: () => import('@/components/Health/HealthAlertSystem.vue'),
+        meta: {
+          title: '健康预警',
+          requiresAuth: true
+        }
+      },
+      {
+        path: '/visits',
+        name: 'Visits',
+        redirect: '/visits/appointments',
+        meta: {
+          title: '探视管理',
+          requiresAuth: true
+        }
+      },
+      {
+        path: '/visits/appointments',
+        name: 'VisitsAppointments',
+        component: () => import('@/views/Visits/Appointments.vue'),
+        meta: {
+          title: '探视预约',
           requiresAuth: true
         }
       }
