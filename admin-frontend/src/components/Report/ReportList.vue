@@ -1,62 +1,85 @@
 <template>
   <div class="report-list">
-    <el-table :data="reports" stripe style="width: 100%">
-      <el-table-column prop="name" label="报表名称" min-width="200">
-        <template #default="{ row }">
-          <div class="report-name">
-            <el-icon class="report-icon"><Document /></el-icon>
-            <span>{{ row.name }}</span>
+    <el-empty v-if="reports.length === 0" description="暂无报表" />
+
+    <div v-else class="report-grid">
+      <el-card
+        v-for="report in reports"
+        :key="report.id"
+        shadow="hover"
+        class="report-card"
+        :class="{ 'is-scheduled': report.schedule }"
+      >
+        <template #header>
+          <div class="card-header">
+            <div class="header-left">
+              <h3 class="report-name">{{ report.name }}</h3>
+              <el-tag v-if="report.schedule" size="small" type="info">
+                <el-icon><Clock /></el-icon>
+                {{ report.schedule }}
+              </el-tag>
+            </div>
+            <div class="header-actions">
+              <el-dropdown trigger="click">
+                <el-button size="small" text>
+                  <el-icon><MoreFilled /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click="$emit('view', report)">
+                      <el-icon><View /></el-icon>
+                      查看
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="$emit('export', report)">
+                      <el-icon><Download /></el-icon>
+                      导出
+                    </el-dropdown-item>
+                    <el-dropdown-item divided @click="handleSchedule(report)">
+                      <el-icon><Clock /></el-icon>
+                      定时任务
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </div>
         </template>
-      </el-table-column>
-      <el-table-column prop="description" label="描述" min-width="300" show-overflow-tooltip />
-      <el-table-column prop="updateAt" label="更新时间" width="120" />
-      <el-table-column prop="schedule" label="生成周期" width="100">
-        <template #default="{ row }">
-          <el-tag v-if="row.schedule" size="small">{{ row.schedule }}</el-tag>
-          <span v-else class="text-muted">手动</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
-        <template #default="{ row }">
-          <el-button size="small" text @click="$emit('view', row)">
-            查看
-          </el-button>
-          <el-button size="small" text @click="handleGenerate(row)">
-            生成
-          </el-button>
-          <el-dropdown trigger="click">
-            <el-button size="small" text>
-              更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item @click="$emit('export', row)">
-                  <el-icon><Download /></el-icon>
-                  导出Excel
-                </el-dropdown-item>
-                <el-dropdown-item @click="handleEdit(row)">
-                  <el-icon><Edit /></el-icon>
-                  编辑
-                </el-dropdown-item>
-                <el-dropdown-item divided @click="handleDelete(row)">
-                  <el-icon><Delete /></el-icon>
-                  删除
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </template>
-      </el-table-column>
-    </el-table>
 
-    <el-empty v-if="reports.length === 0" description="暂无报表" />
+        <div class="card-body">
+          <p class="report-description">{{ report.description }}</p>
+
+          <div class="report-meta">
+            <div class="meta-item">
+              <el-icon><Calendar /></el-icon>
+              <span>更新于 {{ report.updateAt }}</span>
+            </div>
+            <div class="meta-item" v-if="report.category">
+              <el-icon><Folder /></el-icon>
+              <span>{{ getCategoryText(report.category) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="card-footer">
+            <el-button size="small" @click="$emit('view', report)">
+              <el-icon><View /></el-icon>
+              查看报表
+            </el-button>
+            <el-button size="small" type="primary" @click="$emit('export', report)">
+              <el-icon><Download /></el-icon>
+              导出数据
+            </el-button>
+          </div>
+        </template>
+      </el-card>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Document, ArrowDown, Download, Edit, Delete } from '@element-plus/icons-vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { Clock, MoreFilled, View, Download, Calendar, Folder } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 interface Report {
   id: string | number
@@ -71,48 +94,125 @@ defineProps<{
   reports: Report[]
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   view: [report: Report]
   export: [report: Report]
 }>()
 
-const handleGenerate = (report: Report) => {
-  ElMessage.success(`正在生成报表: ${report.name}`)
+const getCategoryText = (category: string) => {
+  const map: Record<string, string> = {
+    operation: '运营报表',
+    nursing: '护理报表',
+    finance: '财务报表',
+    health: '健康报表'
+  }
+  return map[category] || category
 }
 
-const handleEdit = (report: Report) => {
-  console.log('编辑报表', report)
-}
-
-const handleDelete = (report: Report) => {
-  ElMessageBox.confirm(
-    `确定要删除报表"${report.name}"吗？`,
-    '删除确认',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    ElMessage.success('删除成功')
-  })
+const handleSchedule = (report: Report) => {
+  ElMessage.info(`设置"${report.name}"的定时任务`)
 }
 </script>
 
 <style scoped lang="scss">
 .report-list {
-  .report-name {
+  .report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .report-card {
+    transition: var(--transition-base);
+
+    &.is-scheduled {
+      border-top: 3px solid var(--primary-color);
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--card-shadow-hover);
+    }
+  }
+
+  .card-header {
     display: flex;
-    align-items: center;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .header-left {
+      flex: 1;
+
+      .report-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+      }
+
+      :deep(.el-tag) {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+
+    .header-actions {
+      margin-left: 12px;
+    }
+  }
+
+  .card-body {
+    .report-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0 0 16px 0;
+      min-height: 48px;
+    }
+
+    .report-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--text-tertiary);
+
+        .el-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .card-footer {
+    display: flex;
     gap: 8px;
-  }
 
-  .report-icon {
-    color: var(--primary-color);
+    .el-button {
+      flex: 1;
+    }
   }
+}
 
-  .text-muted {
-    color: var(--text-tertiary);
+@media (max-width: 768px) {
+  .report-list {
+    .report-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card-footer {
+      flex-direction: column;
+
+      .el-button {
+        width: 100%;
+      }
+    }
   }
 }
 </style>
