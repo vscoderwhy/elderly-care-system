@@ -20,6 +20,11 @@ func (s *BillService) List(elderlyID uint, page, pageSize int) ([]model.Bill, in
 	return s.billRepo.FindByElderlyID(elderlyID, offset, pageSize)
 }
 
+func (s *BillService) ListAll(page, pageSize int) ([]model.Bill, int64, error) {
+	offset := (page - 1) * pageSize
+	return s.billRepo.List(offset, pageSize)
+}
+
 func (s *BillService) Get(id uint) (*model.Bill, error) {
 	return s.billRepo.FindByID(id)
 }

@@ -6,17 +6,20 @@ import (
 )
 
 type User struct {
-	ID        uint           `json:"id" gorm:"primaryKey"`
-	Phone     string         `json:"phone" gorm:"uniqueIndex;size:20"`
-	Password  string         `json:"-" gorm:"size:255"`
-	Nickname  string         `json:"nickname" gorm:"size:50"`
-	Avatar    string         `json:"avatar" gorm:"size:255"`
-	OpenID    string         `json:"-" gorm:"size:100;index"`
-	Status    string         `json:"status" gorm:"size:20;default:active"` // active/inactive
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
-	Roles     []Role         `json:"roles" gorm:"many2many:user_roles;"`
+	ID           uint           `json:"id" gorm:"primaryKey"`
+	Phone        string         `json:"phone" gorm:"uniqueIndex;size:20"`
+	PasswordHash string         `json:"-" gorm:"column:password_hash;size:255"`
+	Password     string         `json:"-" gorm:"column:password;size:255"`
+	Name         string         `json:"name" gorm:"size:100"`
+	Role         string         `json:"role" gorm:"size:20"`
+	Nickname     string         `json:"nickname" gorm:"size:50"`
+	Avatar       string         `json:"avatar" gorm:"size:255"`
+	OpenID       string         `json:"-" gorm:"size:100;index"`
+	Status       string         `json:"status" gorm:"size:20;default:active"` // active/inactive
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+	Roles        []Role         `json:"roles" gorm:"many2many:user_roles;"`
 }
 
 type Role struct {

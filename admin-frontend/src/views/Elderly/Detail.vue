@@ -110,7 +110,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Plus, Heart, Timer, Sunny, Scale, DataLine } from '@element-plus/icons-vue'
+import { Plus, Check, Timer, Sunny, ScaleToOriginal, DataLine } from '@element-plus/icons-vue'
 import instance, { elderlyApi } from '@/api'
 
 const router = useRouter()
@@ -149,10 +149,10 @@ const missingTypes = computed(() => {
 
 const getHealthIcon = (type: string) => {
   const icons: Record<string, any> = {
-    blood_pressure: Heart,
+    blood_pressure: Check,
     blood_sugar: Timer,
     temperature: Sunny,
-    weight: Scale,
+    weight: ScaleToOriginal,
     heart_rate: DataLine
   }
   return icons[type] || Plus

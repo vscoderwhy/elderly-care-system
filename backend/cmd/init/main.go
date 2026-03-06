@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"golang.org/x/crypto/bcrypt"
 	_ "github.com/lib/pq"
 )
 
@@ -36,12 +37,18 @@ func main() {
 		fmt.Println("Status column exists!")
 	}
 
+	// 生成正确的密码哈希
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatal("Failed to generate password hash:", err)
+	}
+
 	// 插入管理员账号
 	result, err := db.Exec(`
-		INSERT INTO users (id, phone, password, nickname, status) VALUES
-		(1, '13800138000', '$2a$10$N9qo8uLOickgx2ZMRZoMye1IK4w7jL5Z2G5v5Y7w8X9z0C1d2E3F4', '系统管理员', 'active')
-		ON CONFLICT (phone) DO UPDATE SET nickname = '系统管理员', status = 'active'
-	`)
+		INSERT INTO users (id, phone, password_hash, name, role, status) VALUES
+		(1, '13800138000', $1, '系统管理员', 'admin', 'active')
+		ON CONFLICT (phone) DO UPDATE SET password_hash = $1, name = '系统管理员', role = 'admin', status = 'active'
+	`, string(hashedPassword))
 	if err != nil {
 		log.Println("Warning:", err)
 	} else {

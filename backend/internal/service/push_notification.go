@@ -8,15 +8,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/silenceper/wechat/v2/miniprogram"
-	"github.com/silenceper/wechat/v2"
+	// "github.com/silenceper/wechat/v2/miniprogram"
+	// "github.com/silenceper/wechat/v2"
 )
 
 type PushNotificationService struct {
 	pushRepo     *repository.PushNotificationRepository
 	userRepo     *repository.UserRepository
 	cfg          config.Config
-	wechatApp    *miniprogram.MiniProgram
 }
 
 func NewPushNotificationService(
@@ -28,14 +27,18 @@ func NewPushNotificationService(
 		pushRepo: pushRepo,
 		userRepo: userRepo,
 		cfg:      cfg,
+		// wechatApp: nil, // 暂时禁用微信推送
 	}
 
 	// 初始化微信小程序SDK
-	if cfg.WeChat.AppID != "" {
-		wechat := wechat.NewWechat()
-		wechat.SetAppIDAndSecret(cfg.WeChat.AppID, cfg.WeChat.AppSecret)
-		s.wechatApp = wechat.GetMiniProgram()
-	}
+	// TODO: 更新到新版 wechat v2 SDK
+	// if cfg.WeChat.AppID != "" {
+	//     wechat := wechat.NewWechat()
+	//     s.wechatApp = wechat.GetMiniProgram(&config.Config{
+	//         AppID:     cfg.WeChat.AppID,
+	//         AppSecret: cfg.WeChat.AppSecret,
+	//     })
+	// }
 
 	return s
 }
@@ -131,28 +134,33 @@ func (s *PushNotificationService) SendPushNotification(req *SendPushNotification
 
 // sendWeChatPush 发送微信小程序订阅消息
 func (s *PushNotificationService) sendWeChatPush(openID, title, content string, data map[string]interface{}) error {
-	if s.wechatApp == nil {
-		return fmt.Errorf("微信小程序未配置")
-	}
+	// TODO: 更新到新版 wechat v2 SDK 并实现推送
+	// 暂时禁用微信推送
+	return fmt.Errorf("微信小程序推送暂时禁用")
 
 	// 微信小程序订阅消息推送
 	// 注意：需要用户先订阅消息模板
-	subscribe := s.wechatApp.GetSubscribe()
+	// if s.wechatApp == nil {
+	//     return fmt.Errorf("微信小程序未配置")
+	// }
+	//
+	// subscribe := s.wechatApp.GetSubscribe()
+	//
+	// // 构造消息数据
+	// msgData := map[string]interface{}{
+	//     "thing1": map[string]string{"value": title},
+	//     "thing2": map[string]string{"value": content},
+	// }
+	//
+	// err := subscribe.Send(&miniprogram.Message{
+	//     ToUser:     openID,
+	//     TemplateID: s.cfg.WeChat.TemplateID,
+	//     Page:       "pages/index/index",
+	//     Data:       msgData,
+	// })
 
-	// 构造消息数据
-	msgData := map[string]interface{}{
-		"thing1": map[string]string{"value": title},
-		"thing2": map[string]string{"value": content},
-	}
-
-	err := subscribe.Send(&miniprogram.Message{
-		ToUser:     openID,
-		TemplateID: s.cfg.WeChat.TemplateID, // 需要在配置中添加模板ID
-		Page:       "pages/index/index",
-		Data:       msgData,
-	})
-
-	return err
+	// 暂时返回 nil，表示已发送（实际未发送）
+	return nil
 }
 
 // sendAndroidPush 发送Android推送 (使用极光推送、个推等)
@@ -172,7 +180,7 @@ func (s *PushNotificationService) sendIOSPush(token, title, content string, data
 // BroadcastToRole 向指定角色的所有用户发送广播
 func (s *PushNotificationService) BroadcastToRole(role string, title, content string, data map[string]interface{}) error {
 	// 获取该角色的所有用户
-	users, err := s.userRepo.ListUsers(1, 1000, "", role)
+	users, _, err := s.userRepo.ListStaff(role, 1, 1000)
 	if err != nil {
 		return err
 	}

@@ -26,7 +26,7 @@
           <span>护理记录</span>
         </el-menu-item>
         <el-menu-item index="/medications">
-          <el-icon><Medicine /></el-icon>
+          <el-icon><Suitcase /></el-icon>
           <span>用药管理</span>
         </el-menu-item>
         <el-menu-item index="/visits">
@@ -97,7 +97,7 @@ import {
   TrendCharts,
   User,
   Notebook,
-  Medicine,
+  Suitcase,
   Calendar,
   Warning,
   Wallet,

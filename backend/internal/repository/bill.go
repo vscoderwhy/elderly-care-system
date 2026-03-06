@@ -41,6 +41,22 @@ func (r *BillRepository) FindByElderlyID(elderlyID uint, offset, limit int) ([]m
 	return bills, total, err
 }
 
+// List 获取所有账单（不按老人筛选）
+func (r *BillRepository) List(offset, limit int) ([]model.Bill, int64, error) {
+	var bills []model.Bill
+	var total int64
+
+	query := r.db.Where("deleted_at IS NULL")
+
+	err := query.Model(&model.Bill{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = query.Preload("Elderly").Preload("Payments").Order("created_at DESC").Offset(offset).Limit(limit).Find(&bills).Error
+	return bills, total, err
+}
+
 func (r *BillRepository) UpdateStatus(id uint, status string) error {
 	return r.db.Model(&model.Bill{}).Where("id = ?", id).Update("status", status).Error
 }

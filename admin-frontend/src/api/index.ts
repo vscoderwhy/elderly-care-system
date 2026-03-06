@@ -25,6 +25,12 @@ instance.interceptors.request.use(
 // Response interceptor
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
+    // 如果是文件下载（blob类型），直接返回响应
+    if (response.config.responseType === 'blob') {
+      return response
+    }
+    
+    // 普通JSON响应
     const { code, message, data } = response.data
 
     if (code === 0) {

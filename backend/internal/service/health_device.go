@@ -225,7 +225,7 @@ func (s *HealthDeviceService) GetDeviceTrends(deviceID uint, dataType string, da
 	// 分析数据趋势
 	// TODO: 实现更复杂的趋势分析
 
-	return map[string]interface{}{
+	result := map[string]interface{}{
 		"device_id": deviceID,
 		"data_type": dataType,
 		"period": map[string]interface{}{
@@ -233,7 +233,7 @@ func (s *HealthDeviceService) GetDeviceTrends(deviceID uint, dataType string, da
 			"end":   endTime.Format("2006-01-02"),
 		},
 		"data_points": len(data),
-		"latest":     func() any {
+		"latest": func() any {
 			if len(data) > 0 {
 				return data[0]
 			}
@@ -243,6 +243,8 @@ func (s *HealthDeviceService) GetDeviceTrends(deviceID uint, dataType string, da
 		"max":        nil,
 		"min":        nil,
 	}
+
+	return result, nil
 }
 
 // GetAbnormalData 获取异常数据

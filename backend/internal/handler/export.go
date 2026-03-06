@@ -30,7 +30,11 @@ func NewExportHandler(
 
 // ExportElderlyList 导出老人列表
 func (h *ExportHandler) ExportElderlyList(c *gin.Context) {
-	elderly, _, err := h.elderlyRepo.List(1, 10000)
+	// 获取分页参数，默认导出所有数据
+	page := 1
+	pageSize := 100000 // 大批量导出
+	
+	elderly, _, err := h.elderlyRepo.List(page, pageSize)
 	if err != nil {
 		response.Error(c, 500, "获取老人列表失败")
 		return
@@ -81,8 +85,17 @@ func (h *ExportHandler) ExportElderlyList(c *gin.Context) {
 	}
 
 	filename := fmt.Sprintf("老人列表_%s.csv", time.Now().Format("20060102150405"))
+	
+	// 设置正确的响应头，告诉浏览器这是文件下载
+	c.Header("Content-Description", "File Transfer")
 	c.Header("Content-Type", "text/csv; charset=utf-8")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Expires", "0")
+	c.Header("Cache-Control", "must-revalidate")
+	c.Header("Pragma", "public")
+	
+	// 直接返回CSV数据
 	c.Data(200, "text/csv; charset=utf-8", data)
 }
 

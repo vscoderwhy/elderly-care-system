@@ -5,6 +5,7 @@ import (
 	"elderly-care-system/internal/repository"
 	"elderly-care-system/pkg/jwt"
 	"errors"
+	"fmt"
 
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
@@ -75,8 +76,18 @@ func (s *AuthService) Login(req *LoginRequest) (string, *model.User, error) {
 		return "", nil, errors.New("user not found")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	// 优先使用 PasswordHash，如果为空则使用 Password
+	passwordHash := user.PasswordHash
+	if passwordHash == "" {
+		passwordHash = user.Password
+	}
+
+	// 调试日志
+	fmt.Printf("DEBUG: Phone=%s, PasswordHash length=%d\n", user.Phone, len(passwordHash))
+
+	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(req.Password))
 	if err != nil {
+		fmt.Printf("DEBUG: Password comparison failed: %v\n", err)
 		return "", nil, errors.New("invalid password")
 	}
 

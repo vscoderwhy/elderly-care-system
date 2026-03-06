@@ -33,7 +33,7 @@ func NewStatisticsHandler(
 // GetDashboardStats 获取仪表盘统计数据
 func (h *StatisticsHandler) GetDashboardStats(c *gin.Context) {
 	// 获取老人总数
-	elderly, total, _ := h.elderlyRepo.List(1, 10000)
+	elderly, total, _ := h.elderlyRepo.List(0, 10000)
 
 	// 获取床位统计
 	bedStats, _ := h.roomRepo.GetBedStats()
@@ -181,7 +181,7 @@ func (h *StatisticsHandler) GetCareStats(c *gin.Context) {
 
 // GetElderlyAgeDistribution 获取老人年龄分布
 func (h *StatisticsHandler) GetElderlyAgeDistribution(c *gin.Context) {
-	elderly, _, _ := h.elderlyRepo.List(1, 10000)
+	elderly, _, _ := h.elderlyRepo.List(0, 10000)
 
 	// 年龄分组
 	ageGroups := map[string]int{

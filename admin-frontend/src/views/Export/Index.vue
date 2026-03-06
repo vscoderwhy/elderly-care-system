@@ -118,7 +118,10 @@ const doExport = async () => {
   }
 
   const url = exportUrls[currentExport.value]
-  if (!url) return
+  if (!url) {
+    ElMessage.error('未知的导出类型')
+    return
+  }
 
   try {
     const params: any = {}
@@ -127,11 +130,11 @@ const doExport = async () => {
 
     const response = await axios.get(url, {
       params,
-      responseType: 'blob'
+      responseType: 'blob',
+      timeout: 30000
     })
 
-    // 创建下载链接
-    const blob = new Blob([response.data])
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = window.URL.createObjectURL(blob)
 
@@ -145,16 +148,20 @@ const doExport = async () => {
 
     const dateStr = dateRange.start && dateRange.end
       ? `_${dateRange.start}_${dateRange.end}`
-      : ''
+      : `_${new Date().toISOString().split('T')[0]}`
 
     link.download = `${filenames[currentExport.value]}${dateStr}.csv`
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
     window.URL.revokeObjectURL(link.href)
 
     dialogVisible.value = false
     ElMessage.success('导出成功')
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || '导出失败')
+    console.error('导出失败:', error)
+    const errorMsg = error.response?.data?.message || error.message || '导出失败，请稍后重试'
+    ElMessage.error(errorMsg)
   }
 }
 </script>

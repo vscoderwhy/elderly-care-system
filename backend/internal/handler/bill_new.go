@@ -2,7 +2,6 @@ package handler
 
 import (
 	"elderly-care-system/internal/model"
-	"elderly-care-system/internal/service"
 	"elderly-care-system/pkg/response"
 	"strconv"
 
@@ -15,6 +14,25 @@ type BillHandler struct {
 
 func NewBillHandler(billService *service.BillService) *BillHandler {
 	return &BillHandler{billService: billService}
+}
+
+// ListAll 获取所有账单（新方法）
+func (h *BillHandler) ListAll(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	bills, total, err := h.billService.ListAll(page, pageSize)
+	if err != nil {
+		response.Error(c, 500, err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"list":      bills,
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
+	})
 }
 
 func (h *BillHandler) List(c *gin.Context) {
@@ -41,42 +59,9 @@ func (h *BillHandler) List(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{
-		"list":  bills,
-		"total": total,
-		"page":  page,
+		"list":      bills,
+		"total":     total,
+		"page":      page,
 		"page_size": pageSize,
 	})
-}
-
-func (h *BillHandler) Get(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
-
-	bill, err := h.billService.Get(uint(id))
-	if err != nil {
-		response.Error(c, 404, "Bill not found")
-		return
-	}
-
-	response.Success(c, bill)
-}
-
-func (h *BillHandler) Pay(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
-
-	var req struct {
-		Amount        float64 `json:"amount" binding:"required"`
-		Method        string  `json:"method" binding:"required"`
-		TransactionNo string  `json:"transaction_no"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, 400, "Invalid request")
-		return
-	}
-
-	if err := h.billService.Pay(uint(id), req.Amount, req.Method, req.TransactionNo); err != nil {
-		response.Error(c, 500, err.Error())
-		return
-	}
-
-	response.Success(c, gin.H{"message": "Payment successful"})
 }
